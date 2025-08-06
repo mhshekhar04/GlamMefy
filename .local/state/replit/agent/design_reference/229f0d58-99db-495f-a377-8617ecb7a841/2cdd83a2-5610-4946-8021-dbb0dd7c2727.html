@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StyleMe - AI Hair Styling App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#6366f1',
+                        secondary: '#8b5cf6',
+                        accent: '#ec4899',
+                        success: '#10b981',
+                        warning: '#f59e0b',
+                        error: '#ef4444',
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        .glassmorphism {
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .animate-pulse-custom {
+            animation: pulse-custom 2s infinite;
+        }
+        
+        @keyframes pulse-custom {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .typing-animation {
+            overflow: hidden;
+            border-right: 0.15em solid #6366f1;
+            white-space: nowrap;
+            animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+        
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        
+        @keyframes blink-caret {
+            from, to { border-color: transparent; }
+            50% { border-color: #6366f1; }
+        }
+        
+        .hover-scale {
+            transition: all 0.3s ease;
+        }
+        
+        .hover-scale:hover {
+            transform: scale(1.05);
+        }
+        
+        .comparison-slider {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .comparison-handle {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: #6366f1;
+            cursor: ew-resize;
+            z-index: 10;
+        }
+        
+        .comparison-handle::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            background: #6366f1;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+        }
+    </style>
+</head>
+<body class="font-inter bg-gradient-to-br from-slate-50 via-purple-50 to-slate-100 min-h-screen">
+    <!-- Header -->
+    <header class="fixed top-0 left-0 right-0 z-50 bg-white/80 glassmorphism shadow-sm border-b border-white/20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-cut text-secondary text-2xl"></i>
+                    <span class="text-2xl font-bold text-primary">StyleMe</span>
+                </div>
+                
+                <nav class="hidden md:flex items-center space-x-8">
+                    <a href="#home" class="text-primary border-b-2 border-primary font-medium">Home</a>
+                    <a href="#styles" class="text-slate-500 hover:text-primary transition-colors">Styles</a>
+                    <a href="#gallery" class="text-slate-500 hover:text-primary transition-colors">Gallery</a>
+                    <a href="#about" class="text-slate-500 hover:text-primary transition-colors">About</a>
+                </nav>
+                
+                <div class="flex items-center space-x-4">
+                    <button class="hidden md:block px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary hover:text-white transition-all">
+                        Login
+                    </button>
+                    <button class="px-4 py-2 bg-gradient-to-r from-primary to-secondary text-white rounded-lg hover:shadow-lg transition-all">
+                        Sign Up
+                    </button>
+                    <button class="md:hidden text-slate-600" id="mobile-menu-btn">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="fixed inset-0 z-40 transform translate-x-full transition-transform duration-300 md:hidden">
+        <div class="absolute inset-0 bg-black/50"></div>
+        <div class="absolute right-0 top-0 h-full w-64 bg-white shadow-xl">
+            <div class="p-6">
+                <button id="close-mobile-menu" class="float-right text-slate-500">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+                <nav class="mt-8 space-y-4">
+                    <a href="#home" class="block text-primary font-medium">Home</a>
+                    <a href="#styles" class="block text-slate-600">Styles</a>
+                    <a href="#gallery" class="block text-slate-600">Gallery</a>
+                    <a href="#about" class="block text-slate-600">About</a>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section id="home" class="pt-20 pb-16 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <h1 class="text-4xl md:text-6xl font-bold text-slate-800 mb-6">
+                    Transform Your Look with <span class="gradient-text">AI</span>
+                </h1>
+                <p class="text-xl text-slate-600 mb-8 max-w-2xl mx-auto">
+                    Discover your perfect hairstyle and color with our advanced AI technology. 
+                    Try thousands of styles instantly and see yourself in a whole new light.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                    <button id="start-styling-btn" class="px-8 py-4 bg-gradient-to-r from-primary to-secondary text-white rounded-xl hover:shadow-xl hover:shadow-primary/30 transition-all font-semibold">
+                        <i class="fas fa-camera mr-2"></i>
+                        Start Styling
+                    </button>
+                    <button class="px-8 py-4 bg-white border border-primary text-primary rounded-xl hover:bg-primary hover:text-white transition-all font-semibold">
+                        <i class="fas fa-images mr-2"></i>
+                        View Gallery
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Feature Cards -->
+            <div class="grid md:grid-cols-3 gap-8 mb-16">
+                <div class="bg-white/60 glassmorphism rounded-2xl p-6 text-center hover-scale">
+                    <div class="w-16 h-16 bg-warning/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-bolt text-warning text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-slate-800 mb-2">AI-Powered</h3>
+                    <p class="text-slate-600">Advanced algorithms analyze your face shape and features</p>
+                </div>
+                
+                <div class="bg-white/60 glassmorphism rounded-2xl p-6 text-center hover-scale">
+                    <div class="w-16 h-16 bg-success/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-clock text-success text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-slate-800 mb-2">Instant Results</h3>
+                    <p class="text-slate-600">See your new look in seconds with real-time preview</p>
+                </div>
+                
+                <div class="bg-white/60 glassmorphism rounded-2xl p-6 text-center hover-scale">
+                    <div class="w-16 h-16 bg-accent/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-palette text-accent text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-slate-800 mb-2">Unlimited Styles</h3>
+                    <p class="text-slate-600">Choose from thousands of hairstyles and colors</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Face Scanning Modal -->
+    <div id="scan-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 hidden">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">Face Scan</h2>
+                <p class="text-slate-600">Position your face in the frame for AI analysis</p>
+            </div>
+            
+            <div class="relative mb-6">
+                <div id="camera-preview" class="w-full h-64 bg-slate-100 rounded-2xl border-3 border-dashed border-slate-300 flex items-center justify-center relative overflow-hidden">
+                    <!-- Mock camera feed with user photo -->
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <i class="fas fa-user text-slate-400 text-6xl" id="camera-placeholder"></i>
+                        <!-- Professional woman portrait for face scanning demo -->
+                        <img id="mock-camera-feed" src="https://pixabay.com/get/g16989f8abbca68394c182f9dce7654e043832669a28aa3eb4dbc3899cebf6cb7b466dda3f848dff7bfa5fe6911d06c33640dd982765d56c5091f7d977dc5aeca_1280.jpg" alt="Camera feed preview" class="w-full h-full object-cover rounded-xl hidden" />
+                    </div>
+                    
+                    <!-- Face detection overlay -->
+                    <div id="face-overlay" class="absolute inset-4 border-2 border-primary rounded-lg hidden animate-pulse-custom">
+                        <div class="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-primary"></div>
+                        <div class="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-primary"></div>
+                        <div class="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-primary"></div>
+                        <div class="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-primary"></div>
+                    </div>
+                </div>
+                
+                <!-- Guidelines -->
+                <div class="absolute top-2 left-2 right-2 text-center">
+                    <p class="text-sm text-slate-600 bg-white/80 rounded px-2 py-1">Look directly at the camera</p>
+                </div>
+            </div>
+            
+            <!-- Scan Button -->
+            <div class="text-center mb-6">
+                <button id="scan-btn" class="w-20 h-20 bg-gradient-to-r from-primary to-secondary rounded-full text-white text-2xl hover:shadow-xl transition-all">
+                    <i class="fas fa-camera"></i>
+                </button>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div id="scan-progress" class="hidden">
+                <div class="bg-slate-200 rounded-full h-2 mb-4">
+                    <div id="progress-bar" class="bg-gradient-to-r from-primary to-secondary h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+                <p id="scan-status" class="text-center text-slate-600 typing-animation">Analyzing facial features...</p>
+            </div>
+            
+            <!-- Close Button -->
+            <button id="close-scan-modal" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <div class="flex flex-col lg:flex-row gap-8">
+            <!-- Main Content Area -->
+            <div class="flex-1">
+                <!-- Style Selection -->
+                <section id="styles" class="bg-white rounded-2xl shadow-sm p-6 mb-8">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-slate-800 mb-4 sm:mb-0">Choose Your Style</h2>
+                        
+                        <!-- Search Bar -->
+                        <div class="relative">
+                            <input type="text" placeholder="Search hairstyles..." class="pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all">
+                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Category Tabs -->
+                    <div class="flex flex-wrap gap-2 mb-6">
+                        <button class="category-tab active px-4 py-2 bg-white border-b-3 border-primary text-primary font-medium" data-category="all">All Styles</button>
+                        <button class="category-tab px-4 py-2 bg-slate-100 text-slate-600 hover:bg-purple-50 rounded-t-lg transition-all" data-category="short">Short</button>
+                        <button class="category-tab px-4 py-2 bg-slate-100 text-slate-600 hover:bg-purple-50 rounded-t-lg transition-all" data-category="medium">Medium</button>
+                        <button class="category-tab px-4 py-2 bg-slate-100 text-slate-600 hover:bg-purple-50 rounded-t-lg transition-all" data-category="long">Long</button>
+                        <button class="category-tab px-4 py-2 bg-slate-100 text-slate-600 hover:bg-purple-50 rounded-t-lg transition-all" data-category="curly">Curly</button>
+                        <button class="category-tab px-4 py-2 bg-slate-100 text-slate-600 hover:bg-purple-50 rounded-t-lg transition-all" data-category="straight">Straight</button>
+                    </div>
+                    
+                    <!-- Hairstyle Grid -->
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="hairstyle-grid">
+                        <!-- Elegant bob hairstyle on a professional woman -->
+                        <div class="hairstyle-card bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-lg transition-all cursor-pointer" data-category="short" data-difficulty="easy">
+                            <div class="relative">
+                                <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=300&h=300" alt="Classic Bob" class="w-full h-40 object-cover" />
+                                <div class="absolute top-2 right-2">
+                                    <button class="favorite-btn w-8 h-8 bg-white/80 rounded-full flex items-center justify-center">
+                                        <i class="far fa-heart text-slate-400"></i>
+                                    </button>
+                                </div>
+                                <div class="absolute bottom-2 left-2">
+                                    <span class="bg-success text-white text-xs px-2 py-1 rounded">Easy</span>
+                                </div>
+                            </div>
+                            <div class="p-3">
+                                <h3 class="font-semibold text-slate-800 mb-1">Classic Bob</h3>
+                                <button class="w-full py-2 bg-primary text-white rounded-lg text-sm hover:bg-primary/90 transition-colors">
+                                    Try Style
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Beach waves on a young woman -->
+                        <div class="hairstyle-card bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-lg transition-all cursor-pointer" data-category="medium" data-difficulty="medium">
+                            <div class="relative">
+                                <img src="https://images.unsplash.com/photo-1526047932273-341f2a7631f9?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=300&h=300" alt="Beach Waves" class="w-full h-40 object-cover" />
+                                <div class="absolute top-2 right-2">
+                                    <button class="favorite-btn w-8 h-8 bg-white/80 rounded-full flex items-center justify-center">
+                                        <i class="far fa-heart text-slate-400"></i>
+                                    </button>
+                                </div>
+                                <div class="absolute top-2 left-2">
+                                    <span class="bg-gradient-to-r from-warning to-accent text-white text-xs px-2 py-1 rounded">Trending</span>
+                                </div>
+                                <div class="absolute bottom-2 left-2">
+                                    <span class="bg-warning text-white text-xs px-2 py-1 rounded">Medium</span>
+                                </div>
+                            </div>
+                            <div class="p-3">
+                                <h3 class="font-semibold text-slate-800 mb-1">Beach Waves</h3>
+                                <button class="w-full py-2 bg-primary text-white rounded-lg text-sm hover:bg-primary/90 transition-colors">
+                                    Try Style
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Long layered hair on a woman -->
+                        <div class="hairstyle-card bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-lg transition-all cursor-pointer" data-category="long" data-difficulty="hard">
+                            <div class="relative">
+                                <img src="https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=300&h=300" alt="Long Layers" class="w-full h-40 object-cover" />
+                                <div class="absolute top-2 right-2">
+                                    <button class="favorite-btn w-8 h-8 bg-white/80 rounded-full flex items-center justify-center">
+                                        <i class="far fa-heart text-slate-400"></i>
+                                    </button>
+                                </div>
+                                <div class="absolute bottom-2 left-2">
+                                    <span class="bg-error text-white text-xs px-2 py-1 rounded">Hard</span>
+                                </div>
+                            </div>
+                            <div class="p-3">
+                                <h3 class="font-semibold text-slate-800 mb-1">Long Layers</h3>
+                                <button class="w-full py-2 bg-primary text-white rounded-lg text-sm hover:bg-primary/90 transition-colors">
+                                    Try Style
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Curly pixie cut on a young woman -->
+                        <div class="hairstyle-card bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-lg transition-all cursor-pointer" data-category="short curly" data-difficulty="medium">
+                            <div class="relative">
+                                <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=300&h=300" alt="Curly Pixie" class="w-full h-40 object-cover" />
+                                <div class="absolute top-2 right-2">
+                                    <button class="favorite-btn w-8 h-8 bg-white/80 rounded-full flex items-center justify-center">
+                                        <i class="far fa-heart text-slate-400"></i>
+                                    </button>
+                                </div>
+                                <div class="absolute bottom-2 left-2">
+                                    <span class="bg-warning text-white text-xs px-2 py-1 rounded">Medium</span>
+                                </div>
+                            </div>
+                            <div class="p-3">
+                                <h3 class="font-semibold text-slate-800 mb-1">Curly Pixie</h3>
+                                <button class="w-full py-2 bg-primary text-white rounded-lg text-sm hover:bg-primary/90 transition-colors">
+                                    Try Style
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Sleek straight hair on a woman -->
+                        <div class="hairstyle-card bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-lg transition-all cursor-pointer" data-category="long straight" data-difficulty="easy">
+                            <div class="relative">
+                                <img src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=300&h=300" alt="Sleek Straight" class="w-full h-40 object-cover" />
+                                <div class="absolute top-2 right-2">
+                                    <button class="favorite-btn w-8 h-8 bg-white/80 rounded-full flex items-center justify-center">
+                                        <i class="far fa-heart text-slate-400"></i>
+                                    </button>
+                                </div>
+                                <div class="absolute bottom-2 left-2">
+                                    <span class="bg-success text-white text-xs px-2 py-1 rounded">Easy</span>
+                                </div>
+                            </div>
+                            <div class="p-3">
+                                <h3 class="font-semibold text-slate-800 mb-1">Sleek Straight</h3>
+                                <button class="w-full py-2 bg-primary text-white rounded-lg text-sm hover:bg-primary/90 transition-colors">
+                                    Try Style
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Updo hairstyle on an elegant woman -->
+                        <div class="hairstyle-card bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-lg transition-all cursor-pointer" data-category="medium" data-difficulty="hard">
+                            <div class="relative">
+                                <img src="https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=300&h=300" alt="Elegant Updo" class="w-full h-40 object-cover" />
+                                <div class="absolute top-2 right-2">
+                                    <button class="favorite-btn w-8 h-8 bg-white/80 rounded-full flex items-center justify-center">
+                                        <i class="far fa-heart text-slate-400"></i>
+                                    </button>
+                                </div>
+                                <div class="absolute bottom-2 left-2">
+                                    <span class="bg-error text-white text-xs px-2 py-1 rounded">Hard</span>
+                                </div>
+                            </div>
+                            <div class="p-3">
+                                <h3 class="font-semibold text-slate-800 mb-1">Elegant Updo</h3>
+                                <button class="w-full py-2 bg-primary text-white rounded-lg text-sm hover:bg-primary/90 transition-colors">
+                                    Try Style
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Braided style on a young woman -->
+                        <div class="hairstyle-card bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-lg transition-all cursor-pointer" data-category="long" data-difficulty="medium">
+                            <div class="relative">
+                                <img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=300&h=300" alt="Braided Style" class="w-full h-40 object-cover" />
+                                <div class="absolute top-2 right-2">
+                                    <button class="favorite-btn w-8 h-8 bg-white/80 rounded-full flex items-center justify-center">
+                                        <i class="far fa-heart text-slate-400"></i>
+                                    </button>
+                                </div>
+                                <div class="absolute bottom-2 left-2">
+                                    <span class="bg-warning text-white text-xs px-2 py-1 rounded">Medium</span>
+                                </div>
+                            </div>
+                            <div class="p-3">
+                                <h3 class="font-semibold text-slate-800 mb-1">Braided Style</h3>
+                                <button class="w-full py-2 bg-primary text-white rounded-lg text-sm hover:bg-primary/90 transition-colors">
+                                    Try Style
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Modern lob on a stylish woman -->
+                        <div class="hairstyle-card bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-lg transition-all cursor-pointer" data-category="medium" data-difficulty="easy">
+                            <div class="relative">
+                                <img src="https://images.unsplash.com/photo-1505033575518-a36ea2ef75ae?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=300&h=300" alt="Modern Lob" class="w-full h-40 object-cover" />
+                                <div class="absolute top-2 right-2">
+                                    <button class="favorite-btn w-8 h-8 bg-white/80 rounded-full flex items-center justify-center">
+                                        <i class="far fa-heart text-slate-400"></i>
+                                    </button>
+                                </div>
+                                <div class="absolute top-2 left-2">
+                                    <span class="bg-gradient-to-r from-warning to-accent text-white text-xs px-2 py-1 rounded">Trending</span>
+                                </div>
+                                <div class="absolute bottom-2 left-2">
+                                    <span class="bg-success text-white text-xs px-2 py-1 rounded">Easy</span>
+                                </div>
+                            </div>
+                            <div class="p-3">
+                                <h3 class="font-semibold text-slate-800 mb-1">Modern Lob</h3>
+                                <button class="w-full py-2 bg-primary text-white rounded-lg text-sm hover:bg-primary/90 transition-colors">
+                                    Try Style
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Color Palette -->
+                <section class="bg-white rounded-2xl shadow-sm p-6 mb-8">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-6">Choose Your Color</h2>
+                    
+                    <div class="space-y-6">
+                        <!-- Natural Colors -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-slate-700 mb-3">Natural</h3>
+                            <div class="flex flex-wrap gap-3">
+                                <!-- Color palette featuring natural hair colors -->
+                                <div class="relative group">
+                                    <img src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=100&h=100" alt="Black hair color swatch" class="w-12 h-12 rounded-full border-4 border-white shadow-md hover:scale-110 transition-transform cursor-pointer" />
+                                </div>
+                                <div class="relative group">
+                                    <img src="https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=100&h=100" alt="Brown hair color swatch" class="w-12 h-12 rounded-full border-4 border-white shadow-md hover:scale-110 transition-transform cursor-pointer" />
+                                </div>
+                                <div class="relative group">
+                                    <img src="https://images.unsplash.com/photo-1519699047748-de8e457a634e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=100&h=100" alt="Blonde hair color swatch" class="w-12 h-12 rounded-full border-4 border-white shadow-md hover:scale-110 transition-transform cursor-pointer" />
+                                </div>
+                                <div class="relative group">
+                                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=100&h=100" alt="Auburn hair color swatch" class="w-12 h-12 rounded-full border-4 border-white shadow-md hover:scale-110 transition-transform cursor-pointer" />
+                                </div>
+                                <div class="relative group">
+                                    <img src="https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=100&h=100" alt="Red hair color swatch" class="w-12 h-12 rounded-full border-4 border-white shadow-md hover:scale-110 transition-transform cursor-pointer" />
+                                </div>
+                                <div class="relative group">
+                                    <img src="https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=100&h=100" alt="Silver hair color swatch" class="w-12 h-12 rounded-full border-4 border-white shadow-md hover:scale-110 transition-transform cursor-pointer" />
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Vibrant Colors -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-slate-700 mb-3">Vibrant</h3>
+                            <div class="flex flex-wrap gap-3">
+                                <div class="w-12 h-12 rounded-full border-4 border-white shadow-md hover:scale-110 transition-transform cursor-pointer" style="background: linear-gradient(135deg, #ff6b6b, #ee5a52);"></div>
+                                <div class="w-12 h-12 rounded-full border-4 border-white shadow-md hover:scale-110 transition-transform cursor-pointer" style="background: linear-gradient(135deg, #4ecdc4, #44a08d);"></div>
+                                <div class="w-12 h-12 rounded-full border-4 border-white shadow-md hover:scale-110 transition-transform cursor-pointer" style="background: linear-gradient(135deg, #a8e6cf, #7fcdcd);"></div>
+                                <div class="w-12 h-12 rounded-full border-4 border-white shadow-md hover:scale-110 transition-transform cursor-pointer" style="background: linear-gradient(135deg, #ffd93d, #ff6b6b);"></div>
+                                <div class="w-12 h-12 rounded-full border-4 border-white shadow-md hover:scale-110 transition-transform cursor-pointer" style="background: linear-gradient(135deg, #a8edea, #fed6e3);"></div>
+                                <div class="w-12 h-12 rounded-full border-4 border-white shadow-md hover:scale-110 transition-transform cursor-pointer" style="background: linear-gradient(135deg, #f093fb, #f5576c);"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Custom Color -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-slate-700 mb-3">Custom</h3>
+                            <input type="color" class="w-12 h-12 rounded-full border-4 border-white shadow-md cursor-pointer" value="#6366f1">
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Preview Section -->
+                <section class="bg-white rounded-2xl shadow-sm p-6">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-6">Preview Your Look</h2>
+                    
+                    <div class="comparison-slider relative rounded-xl overflow-hidden mb-6" style="height: 400px;">
+                        <!-- Before Image -->
+                        <!-- Professional woman before hair styling -->
+                        <img src="https://pixabay.com/get/g581fd917e2df1bf4b9be4486c5c322af12201b70191cd65281f7a060204a4e8d1dc07e3761ae3951ea8644e8f67ff8fc381f3bcdda3dd249a1af433742ea9595_1280.jpg" alt="Before styling" class="absolute inset-0 w-full h-full object-cover" />
+                        
+                        <!-- After Image -->
+                        <div class="absolute inset-0 overflow-hidden" style="clip-path: inset(0 50% 0 0);">
+                            <!-- Same woman with a styled bob haircut -->
+                            <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&h=400" alt="After styling" class="w-full h-full object-cover" />
+                        </div>
+                        
+                        <!-- Comparison Handle -->
+                        <div class="comparison-handle" style="left: 50%;"></div>
+                        
+                        <!-- Labels -->
+                        <div class="absolute top-4 left-4 bg-black/50 text-white px-3 py-1 rounded text-sm">Before</div>
+                        <div class="absolute top-4 right-4 bg-black/50 text-white px-3 py-1 rounded text-sm">After</div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="flex flex-wrap gap-4">
+                        <button class="flex-1 min-w-32 py-3 bg-gradient-to-r from-success to-green-400 text-white rounded-xl font-semibold hover:shadow-lg transition-all">
+                            <i class="fas fa-save mr-2"></i>
+                            Save Look
+                        </button>
+                        <button class="flex-1 min-w-32 py-3 bg-white border border-primary text-primary rounded-xl font-semibold hover:bg-primary hover:text-white transition-all">
+                            <i class="fas fa-redo mr-2"></i>
+                            Try Another
+                        </button>
+                        <button class="flex-1 min-w-32 py-3 bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-xl font-semibold hover:shadow-lg transition-all">
+                            <i class="fas fa-share mr-2"></i>
+                            Share
+                        </button>
+                        <button class="flex-1 min-w-32 py-3 bg-gradient-to-r from-warning to-accent text-white rounded-xl font-semibold hover:shadow-lg transition-all">
+                            <i class="fas fa-download mr-2"></i>
+                            Download
+                        </button>
+                    </div>
+                </section>
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="w-full lg:w-80 space-y-6">
+                <!-- Recently Tried -->
+                <div class="bg-white rounded-2xl shadow-sm p-6">
+                    <h3 class="text-lg font-semibold text-slate-800 mb-4">Recently Tried</h3>
+                    <div class="space-y-3">
+                        <!-- Thumbnail of recently tried bob style -->
+                        <div class="flex items-center space-x-3 p-2 hover:bg-slate-50 rounded-lg cursor-pointer">
+                            <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=60&h=60" alt="Recent style" class="w-12 h-12 rounded-lg object-cover border border-slate-200" />
+                            <div>
+                                <p class="font-medium text-slate-800">Classic Bob</p>
+                                <p class="text-sm text-slate-500">2 hours ago</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Thumbnail of recently tried waves style -->
+                        <div class="flex items-center space-x-3 p-2 hover:bg-slate-50 rounded-lg cursor-pointer">
+                            <img src="https://images.unsplash.com/photo-1526047932273-341f2a7631f9?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=60&h=60" alt="Recent style" class="w-12 h-12 rounded-lg object-cover border border-slate-200" />
+                            <div>
+                                <p class="font-medium text-slate-800">Beach Waves</p>
+                                <p class="text-sm text-slate-500">Yesterday</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Thumbnail of recently tried updo style -->
+                        <div class="flex items-center space-x-3 p-2 hover:bg-slate-50 rounded-lg cursor-pointer">
+                            <img src="https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=60&h=60" alt="Recent style" class="w-12 h-12 rounded-lg object-cover border border-slate-200" />
+                            <div>
+                                <p class="font-medium text-slate-800">Elegant Updo</p>
+                                <p class="text-sm text-slate-500">3 days ago</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Trending Styles -->
+                <div class="bg-white rounded-2xl shadow-sm p-6">
+                    <h3 class="text-lg font-semibold text-slate-800 mb-4">
+                        <i class="fas fa-fire text-warning mr-2"></i>
+                        Trending Now
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="font-medium text-slate-800">Beach Waves</span>
+                            <span class="text-sm text-slate-500">2.3k tries</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="font-medium text-slate-800">Curtain Bangs</span>
+                            <span class="text-sm text-slate-500">1.8k tries</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="font-medium text-slate-800">Wolf Cut</span>
+                            <span class="text-sm text-slate-500">1.5k tries</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="font-medium text-slate-800">Modern Lob</span>
+                            <span class="text-sm text-slate-500">1.2k tries</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Pro Tips -->
+                <div class="bg-white rounded-2xl shadow-sm p-6">
+                    <h3 class="text-lg font-semibold text-slate-800 mb-4">
+                        <i class="fas fa-lightbulb text-primary mr-2"></i>
+                        Pro Tips
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="flex items-start space-x-3">
+                            <i class="fas fa-check-circle text-primary mt-1"></i>
+                            <p class="text-slate-600 text-sm">Consider your face shape when choosing a style</p>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <i class="fas fa-check-circle text-primary mt-1"></i>
+                            <p class="text-slate-600 text-sm">Think about your lifestyle and maintenance time</p>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <i class="fas fa-check-circle text-primary mt-1"></i>
+                            <p class="text-slate-600 text-sm">Always consult with a professional stylist</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Premium Banner -->
+                <div class="bg-gradient-to-r from-accent to-pink-600 rounded-2xl p-6 text-white">
+                    <div class="text-center">
+                        <i class="fas fa-crown text-yellow-300 text-3xl mb-3"></i>
+                        <h3 class="text-xl font-bold mb-2">Go Premium!</h3>
+                        <p class="text-sm mb-4 opacity-90">Unlock unlimited styles, HD downloads, and exclusive colors</p>
+                        <button id="upgrade-btn" class="w-full py-3 bg-white text-accent rounded-xl font-semibold hover:bg-gray-100 transition-colors">
+                            Upgrade Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Premium Upgrade Modal -->
+    <div id="premium-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 hidden">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl">
+            <div class="text-center">
+                <i class="fas fa-crown text-yellow-500 text-4xl mb-4"></i>
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">Unlock Premium Features</h2>
+                <p class="text-slate-600 mb-6">Get access to exclusive styles and advanced features</p>
+                
+                <div class="space-y-4 mb-6">
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-check text-success"></i>
+                        <span class="text-slate-700">Unlimited hairstyle tries</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-check text-success"></i>
+                        <span class="text-slate-700">HD image downloads</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-check text-success"></i>
+                        <span class="text-slate-700">Exclusive color palettes</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-check text-success"></i>
+                        <span class="text-slate-700">Advanced face analysis</span>
+                    </div>
+                </div>
+                
+                <div class="space-y-3">
+                    <button class="w-full py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-xl font-semibold hover:shadow-lg transition-all">
+                        Start Free Trial
+                    </button>
+                    <button id="close-premium-modal" class="w-full py-3 bg-slate-100 text-slate-600 rounded-xl font-medium hover:bg-slate-200 transition-colors">
+                        Maybe Later
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-slate-800 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center space-x-2 mb-4">
+                        <i class="fas fa-cut text-secondary text-2xl"></i>
+                        <span class="text-2xl font-bold">StyleMe</span>
+                    </div>
+                    <p class="text-slate-400 mb-4">Transform your look with AI-powered hair styling</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-slate-500 hover:text-primary transition-colors">
+                            <i class="fab fa-facebook text-xl"></i>
+                        </a>
+                        <a href="#" class="text-slate-500 hover:text-primary transition-colors">
+                            <i class="fab fa-instagram text-xl"></i>
+                        </a>
+                        <a href="#" class="text-slate-500 hover:text-primary transition-colors">
+                            <i class="fab fa-twitter text-xl"></i>
+                        </a>
+                        <a href="#" class="text-slate-500 hover:text-primary transition-colors">
+                            <i class="fab fa-youtube text-xl"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Features</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-slate-400 hover:text-white transition-colors">AI Face Scanning</a></li>
+                        <li><a href="#" class="text-slate-400 hover:text-white transition-colors">Style Gallery</a></li>
+                        <li><a href="#" class="text-slate-400 hover:text-white transition-colors">Color Palette</a></li>
+                        <li><a href="#" class="text-slate-400 hover:text-white transition-colors">Share & Save</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Support</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-slate-400 hover:text-white transition-colors">Help Center</a></li>
+                        <li><a href="#" class="text-slate-400 hover:text-white transition-colors">Contact Us</a></li>
+                        <li><a href="#" class="text-slate-400 hover:text-white transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="text-slate-400 hover:text-white transition-colors">Terms of Service</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Company</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-slate-400 hover:text-white transition-colors">About Us</a></li>
+                        <li><a href="#" class="text-slate-400 hover:text-white transition-colors">Careers</a></li>
+                        <li><a href="#" class="text-slate-400 hover:text-white transition-colors">Blog</a></li>
+                        <li><a href="#" class="text-slate-400 hover:text-white transition-colors">Press</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-slate-700 mt-8 pt-8 text-center">
+                <p class="text-slate-500">&copy; 2024 StyleMe. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        (() => {
+            // Mobile menu functionality
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const closeMobileMenu = document.getElementById('close-mobile-menu');
+
+            mobileMenuBtn?.addEventListener('click', () => {
+                mobileMenu.classList.remove('translate-x-full');
+            });
+
+            closeMobileMenu?.addEventListener('click', () => {
+                mobileMenu.classList.add('translate-x-full');
+            });
+
+            // Face scanning modal functionality
+            const startStylingBtn = document.getElementById('start-styling-btn');
+            const scanModal = document.getElementById('scan-modal');
+            const closeScanModal = document.getElementById('close-scan-modal');
+            const scanBtn = document.getElementById('scan-btn');
+            const cameraPreview = document.getElementById('camera-preview');
+            const cameraPlaceholder = document.getElementById('camera-placeholder');
+            const mockCameraFeed = document.getElementById('mock-camera-feed');
+            const faceOverlay = document.getElementById('face-overlay');
+            const scanProgress = document.getElementById('scan-progress');
+            const progressBar = document.getElementById('progress-bar');
+            const scanStatus = document.getElementById('scan-status');
+
+            startStylingBtn?.addEventListener('click', () => {
+                scanModal.classList.remove('hidden');
+            });
+
+            closeScanModal?.addEventListener('click', () => {
+                scanModal.classList.add('hidden');
+                resetScanState();
+            });
+
+            scanBtn?.addEventListener('click', () => {
+                // Simulate camera activation
+                cameraPlaceholder.classList.add('hidden');
+                mockCameraFeed.classList.remove('hidden');
+                cameraPreview.classList.add('border-primary');
+                cameraPreview.classList.remove('border-slate-300');
+                
+                setTimeout(() => {
+                    faceOverlay.classList.remove('hidden');
+                    simulateScanProgress();
+                }, 1000);
+            });
+
+            function simulateScanProgress() {
+                scanProgress.classList.remove('hidden');
+                scanBtn.disabled = true;
+                
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += Math.random() * 15 + 5;
+                    if (progress >= 100) {
+                        progress = 100;
+                        clearInterval(interval);
+                        scanStatus.textContent = 'Analysis complete! Redirecting to styles...';
+                        
+                        setTimeout(() => {
+                            scanModal.classList.add('hidden');
+                            resetScanState();
+                            document.getElementById('styles').scrollIntoView({ behavior: 'smooth' });
+                        }, 1500);
+                    }
+                    progressBar.style.width = progress + '%';
+                }, 200);
+            }
+
+            function resetScanState() {
+                cameraPlaceholder.classList.remove('hidden');
+                mockCameraFeed.classList.add('hidden');
+                faceOverlay.classList.add('hidden');
+                scanProgress.classList.add('hidden');
+                cameraPreview.classList.remove('border-primary');
+                cameraPreview.classList.add('border-slate-300');
+                progressBar.style.width = '0%';
+                scanStatus.textContent = 'Analyzing facial features...';
+                scanBtn.disabled = false;
+            }
+
+            // Category filtering
+            const categoryTabs = document.querySelectorAll('.category-tab');
+            const hairstyleCards = document.querySelectorAll('.hairstyle-card');
+
+            categoryTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Update active tab
+                    categoryTabs.forEach(t => {
+                        t.classList.remove('active', 'bg-white', 'border-b-3', 'border-primary', 'text-primary');
+                        t.classList.add('bg-slate-100', 'text-slate-600');
+                    });
+                    
+                    tab.classList.add('active', 'bg-white', 'border-b-3', 'border-primary', 'text-primary');
+                    tab.classList.remove('bg-slate-100', 'text-slate-600');
+
+                    const selectedCategory = tab.dataset.category;
+                    
+                    // Filter cards
+                    hairstyleCards.forEach(card => {
+                        const cardCategories = card.dataset.category;
+                        if (selectedCategory === 'all' || cardCategories.includes(selectedCategory)) {
+                            card.style.display = 'block';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                });
+            });
+
+            // Favorite functionality
+            const favoriteButtons = document.querySelectorAll('.favorite-btn');
+            let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+
+            favoriteButtons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const icon = btn.querySelector('i');
+                    const card = btn.closest('.hairstyle-card');
+                    const styleName = card.querySelector('h3').textContent;
+                    
+                    if (icon.classList.contains('far')) {
+                        // Add to favorites
+                        icon.classList.remove('far', 'text-slate-400');
+                        icon.classList.add('fas', 'text-error');
+                        favorites.push(styleName);
+                    } else {
+                        // Remove from favorites
+                        icon.classList.remove('fas', 'text-error');
+                        icon.classList.add('far', 'text-slate-400');
+                        favorites = favorites.filter(fav => fav !== styleName);
+                    }
+                    
+                    localStorage.setItem('favorites', JSON.stringify(favorites));
+                });
+            });
+
+            // Load saved favorites
+            hairstyleCards.forEach(card => {
+                const styleName = card.querySelector('h3').textContent;
+                if (favorites.includes(styleName)) {
+                    const icon = card.querySelector('.favorite-btn i');
+                    icon.classList.remove('far', 'text-slate-400');
+                    icon.classList.add('fas', 'text-error');
+                }
+            });
+
+            // Premium modal functionality
+            const upgradeBtn = document.getElementById('upgrade-btn');
+            const premiumModal = document.getElementById('premium-modal');
+            const closePremiumModal = document.getElementById('close-premium-modal');
+
+            upgradeBtn?.addEventListener('click', () => {
+                premiumModal.classList.remove('hidden');
+            });
+
+            closePremiumModal?.addEventListener('click', () => {
+                premiumModal.classList.add('hidden');
+            });
+
+            // Comparison slider functionality
+            const comparisonSlider = document.querySelector('.comparison-slider');
+            const comparisonHandle = document.querySelector('.comparison-handle');
+            const afterImage = comparisonSlider?.querySelector('[style*="clip-path"]');
+
+            let isDragging = false;
+
+            comparisonHandle?.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging || !comparisonSlider) return;
+                
+                const rect = comparisonSlider.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
+                
+                comparisonHandle.style.left = percentage + '%';
+                if (afterImage) {
+                    afterImage.style.clipPath = `inset(0 ${100 - percentage}% 0 0)`;
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+
+            // Search functionality
+            const searchInput = document.querySelector('input[placeholder="Search hairstyles..."]');
+            
+            searchInput?.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                
+                hairstyleCards.forEach(card => {
+                    const styleName = card.querySelector('h3').textContent.toLowerCase();
+                    if (styleName.includes(searchTerm)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+
+            // Smooth scrolling for navigation
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+
+            // Color palette selection
+            const colorSwatches = document.querySelectorAll('[class*="rounded-full"][class*="cursor-pointer"]');
+            
+            colorSwatches.forEach(swatch => {
+                swatch.addEventListener('click', () => {
+                    // Remove active state from all swatches
+                    colorSwatches.forEach(s => {
+                        s.classList.remove('ring-4', 'ring-primary');
+                    });
+                    
+                    // Add active state to clicked swatch
+                    swatch.classList.add('ring-4', 'ring-primary');
+                    
+                    // TODO: Apply color to preview image
+                });
+            });
+
+            // Add subtle animations on page load
+            window.addEventListener('load', () => {
+                const elements = document.querySelectorAll('.hairstyle-card, .hover-scale');
+                elements.forEach((el, index) => {
+                    el.style.opacity = '0';
+                    el.style.transform = 'translateY(20px)';
+                    
+                    setTimeout(() => {
+                        el.style.transition = 'all 0.6s ease';
+                        el.style.opacity = '1';
+                        el.style.transform = 'translateY(0)';
+                    }, index * 100);
+                });
+            });
+
+            // Touch support for mobile comparison slider
+            comparisonHandle?.addEventListener('touchstart', (e) => {
+                isDragging = true;
+                e.preventDefault();
+            });
+
+            document.addEventListener('touchmove', (e) => {
+                if (!isDragging || !comparisonSlider) return;
+                
+                const rect = comparisonSlider.getBoundingClientRect();
+                const x = e.touches[0].clientX - rect.left;
+                const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
+                
+                comparisonHandle.style.left = percentage + '%';
+                if (afterImage) {
+                    afterImage.style.clipPath = `inset(0 ${100 - percentage}% 0 0)`;
+                }
+            });
+
+            document.addEventListener('touchend', () => {
+                isDragging = false;
+            });
+        })();
+    </script>
+</body>
+</html>

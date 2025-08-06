@@ -1,0 +1,251 @@
+Complete StyleMe Hair Styling App - Detailed Replit Prompt
+App Overview
+Create a modern, interactive hair styling web application where users can scan their face and try different hairstyles and colors using AI. The app should have a premium feel with smooth animations, glassmorphism effects, and an intuitive user experience.
+
+Complete Color Specification & Usage
+Header Section
+
+Background: #ffffff with backdrop-filter: blur(10px) and box-shadow: 0 2px 20px rgba(0,0,0,0.08)
+Logo "StyleMe": #6366f1 with scissors icon in #8b5cf6
+Navigation Links: #64748b (inactive), #6366f1 (active) with bottom border #6366f1
+Login Button: #ffffff background, #6366f1 border and text
+Sign Up Button: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) background, #ffffff text
+
+Hero Section
+
+Background: linear-gradient(135deg, #f8fafc 0%, #faf7ff 50%, #f1f5f9 100%)
+Main Headline: #1e293b color
+"AI" Text: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) text gradient
+Subtitle: #64748b color
+"Start Styling" Button: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) background, #ffffff text, 0 4px 20px rgba(99, 102, 241, 0.3) shadow
+"View Gallery" Button: #ffffff background, #6366f1 border and text
+Feature Icons:
+
+Lightning (AI-Powered): #f59e0b
+Clock (Instant Results): #10b981
+Palette (Unlimited Styles): #ec4899
+
+
+
+Face Scanning Section
+
+Modal Background: rgba(0, 0, 0, 0.7) overlay
+Scanner Card: #ffffff background, border-radius: 24px, box-shadow: 0 8px 32px rgba(0,0,0,0.15)
+Camera Preview Area:
+
+Border: 3px dashed #e2e8f0 (inactive), 3px solid #6366f1 (active)
+Background: #f8fafc
+
+
+Scan Button:
+
+Background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)
+Icon: #ffffff
+Pulse animation with rgba(99, 102, 241, 0.4)
+
+
+Progress Bar:
+
+Background: #e2e8f0
+Fill: linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%)
+
+
+Guideline Text: #64748b
+AI Analysis Text: #6366f1 with typing animation
+
+Style Selection Interface
+
+Section Background: #ffffff
+Category Tabs:
+
+Inactive: #f1f5f9 background, #64748b text
+Active: #ffffff background, #6366f1 text, 3px solid #6366f1 bottom border
+Hover: #faf7ff background
+
+
+Search Bar:
+
+Background: #f8fafc
+Border: 1px solid #e2e8f0 (inactive), 2px solid #6366f1 (focus)
+Placeholder: #94a3b8
+Icon: #64748b
+
+
+
+Hairstyle Cards
+
+Card Background: #ffffff
+Card Border: 1px solid #e2e8f0
+Card Shadow: 0 2px 8px rgba(0,0,0,0.06) (normal), 0 8px 24px rgba(0,0,0,0.12) (hover)
+Image Overlay: linear-gradient(transparent 60%, rgba(0,0,0,0.7) 100%)
+Style Name: #ffffff (over overlay), #1e293b (below image)
+Difficulty Badges:
+
+Easy: #10b981 background, #ffffff text
+Medium: #f59e0b background, #ffffff text
+Hard: #ef4444 background, #ffffff text
+
+
+Try Button: #6366f1 background, #ffffff text
+Favorite Icon: #ef4444 (liked), #e2e8f0 (unliked)
+Trending Badge: linear-gradient(135deg, #f59e0b 0%, #ec4899 100%) background, #ffffff text
+
+Color Palette Section
+
+Section Title: #1e293b
+Category Labels: #64748b
+Color Swatches:
+
+Border: 3px solid #ffffff inner, 1px solid #e2e8f0 outer
+Active State: 3px solid #6366f1 inner border
+Hover: transform: scale(1.1) with box-shadow: 0 4px 12px rgba(0,0,0,0.15)
+
+
+Custom Color Input: #f8fafc background, #6366f1 accent
+
+Preview/Result Section
+
+Background: #ffffff card with border-radius: 20px
+Before/After Labels: #64748b
+Comparison Slider:
+
+Track: #e2e8f0
+Handle: #6366f1 with box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3)
+
+
+Action Buttons:
+
+Save: linear-gradient(135deg, #10b981 0%, #34d399 100%) background, #ffffff text
+Try Another: #ffffff background, #6366f1 border and text
+Share: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) background, #ffffff text
+Download: linear-gradient(135deg, #f59e0b 0%, #ec4899 100%) background, #ffffff text
+
+
+
+Sidebar Elements
+Recently Tried
+
+Card Background: #ffffff
+Thumbnails: border-radius: 12px with 1px solid #e2e8f0
+
+Trending Section
+
+Background: #ffffff
+Fire Icon: #f59e0b
+Try Count: #64748b
+
+Pro Tips
+
+Background: #ffffff
+Tip Icons: #6366f1
+Tip Text: #64748b
+
+Premium Banner
+
+Background: linear-gradient(135deg, #ec4899 0%, #be185d 100%)
+Text: #ffffff
+Crown Icon: #fbbf24
+Upgrade Button: #ffffff background, #ec4899 text
+
+Footer
+
+Background: #1e293b
+Logo: #ffffff
+Tagline: #94a3b8
+Links: #cbd5e1 (normal), #ffffff (hover)
+Social Icons: #64748b (normal), #6366f1 (hover)
+Copyright: #64748b
+
+
+Complete Technical Implementation Prompt
+Create a professional hair styling web application with the following specifications:
+
+STRUCTURE:
+1. HTML5 semantic structure with proper accessibility
+2. Responsive design (mobile-first approach)
+3. Single-page application with smooth section transitions
+
+LAYOUT SECTIONS:
+1. Header with navigation and auth buttons
+2. Hero section with animated background and CTAs
+3. Face scanning modal with camera integration
+4. Style selection grid with filtering
+5. Color palette with swatches
+6. Preview section with before/after comparison
+7. Sidebar with recently tried, trending, tips, and premium upgrade
+8. Footer with links and social media
+
+STYLING REQUIREMENTS:
+- Use CSS Grid and Flexbox for layouts
+- Implement glassmorphism effects with backdrop-filter
+- Add smooth CSS transitions (0.3s ease) for all interactions
+- Include hover effects with transform and shadow changes
+- Use CSS custom properties for the color system
+- Implement responsive breakpoints: 768px (tablet), 1024px (desktop)
+
+INTERACTIVE FEATURES:
+1. Camera access and face detection simulation
+2. Hairstyle filtering by category, difficulty, and face shape
+3. Color picker with predefined palettes
+4. Before/after slider comparison
+5. Save/share functionality simulation
+6. Search functionality for styles
+7. Favorite/unfavorite styles
+8. Premium upgrade modal
+
+ANIMATIONS:
+- Fade-in animations for page load
+- Smooth transitions between sections
+- Hover effects on cards and buttons
+- Loading spinners and progress bars
+- Pulse effects for scanning
+- Slide animations for mobile menu
+
+JAVASCRIPT FUNCTIONALITY:
+1. Mock camera feed using placeholder
+2. Style filtering and search
+3. Color application preview
+4. Modal controls
+5. Image comparison slider
+6. Local storage for favorites and history
+7. Responsive navigation toggle
+
+COMPONENTS TO INCLUDE:
+- Navigation menu with mobile hamburger
+- Hero section with animated elements
+- Modal dialogs for scanning and premium upgrade
+- Grid layouts for style cards
+- Color palette selector
+- Image comparison slider
+- Sidebar with multiple sections
+- Footer with organized links
+
+TECHNICAL DETAILS:
+- Use modern CSS features (Grid, Flexbox, Custom Properties)
+- Implement proper semantic HTML
+- Add ARIA labels for accessibility
+- Include meta tags for responsive design
+- Use CSS animations and transitions
+- Implement JavaScript ES6+ features
+- Add touch/swipe support for mobile
+
+VISUAL EFFECTS:
+- Gradient backgrounds and buttons
+- Box shadows with multiple layers
+- Border radius for modern card design
+- Glassmorphism effects on overlays
+- Smooth color transitions
+- Scale transforms on hover
+- Opacity changes for interactions
+
+The app should feel premium, responsive, and engaging with smooth animations throughout. Focus on user experience and modern design trends while maintaining excellent performance.
+
+File Structure for Replit
+/
+├── index.html (Main HTML structure)
+├── styles.css (All CSS styling)
+├── script.js (JavaScript functionality)
+├── assets/
+│   ├── images/ (placeholder images)
+│   └── icons/ (icon files)
+└── README.md (Project documentation)
