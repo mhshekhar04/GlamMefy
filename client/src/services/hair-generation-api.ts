@@ -273,3 +273,10 @@ export class HairGenerationAPIService {
 
 // Export singleton instance
 export const hairGenerationAPI = HairGenerationAPIService.getInstance(); 
+
+      // Initialize hair generation API
+      const apiKey = import.meta.env.VITE_FAL_KEY;
+      if (!apiKey) {
+        throw new Error('FAL API key not found. Please set VITE_FAL_KEY environment variable.');
+      }
+      hairGenerationAPI.initialize(apiKey); 
