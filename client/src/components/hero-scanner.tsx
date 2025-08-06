@@ -179,7 +179,7 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
             <div className="space-y-6">
               <div className="space-y-3">
                 <h3 className="text-4xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600 bg-clip-text text-transparent">
-                  AI Face Scanner
+                  GlamMefy Scanner
                 </h3>
                 <p className="text-gray-600 text-lg">Advanced 3D Face Recognition & Analysis</p>
               </div>
@@ -218,7 +218,7 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 <div className="relative z-10 flex items-center justify-center space-x-3">
                   <Sparkles className="h-6 w-6 animate-pulse" />
-                  <span>Initialize AI Scanner</span>
+                  <span>Initialize GlamMefy Scanner</span>
                   <Zap className="h-6 w-6 animate-pulse" />
                 </div>
               </Button>
@@ -306,7 +306,7 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
                   <h3 className="text-xl font-bold text-gray-800">
                     Capturing {scanPhase.charAt(0).toUpperCase() + scanPhase.slice(1)} View
                   </h3>
-                  <p className="text-gray-600">AI is analyzing facial features...</p>
+                  <p className="text-gray-600">GlamMefy AI is analyzing facial features...</p>
                 </div>
               </div>
               
@@ -373,7 +373,7 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
             {/* Processing Status */}
             <div className="space-y-4">
               <h3 className="text-2xl font-bold text-gray-800">Processing Images</h3>
-              <p className="text-gray-600">Analyzing facial features and generating 3D model...</p>
+              <p className="text-gray-600">GlamMefy AI is analyzing facial features and generating 3D model...</p>
               
               {/* Progress Bar */}
               <div className="w-full max-w-md mx-auto">
@@ -418,7 +418,7 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
                       <CheckCircle className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-2xl font-bold text-gray-800">Scan Complete!</h3>
+                      <h3 className="text-2xl font-bold text-gray-800">GlamMefy Scan Complete!</h3>
                       <p className="text-gray-600">AI analysis finished successfully</p>
                     </div>
                   </div>
@@ -428,7 +428,7 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
                 <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-6 border border-purple-200">
                   <div className="flex items-center justify-center space-x-2 mb-4">
                     <Brain className="h-5 w-5 text-purple-500" />
-                    <h4 className="text-lg font-semibold text-gray-800">AI Analysis Results</h4>
+                    <h4 className="text-lg font-semibold text-gray-800">GlamMefy AI Analysis Results</h4>
                   </div>
                   
                   {/* Analysis Stats */}
@@ -507,14 +507,14 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
                 <div className="bg-gray-50 rounded-xl p-4">
                   <div className="flex items-center justify-center space-x-2 text-sm text-gray-600">
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span>Your face data is ready for hairstyle generation</span>
+                    <span>Your face data is ready for GlamMefy hairstyle generation</span>
                   </div>
                 </div>
               </>
             ) : (
               <div className="flex items-center justify-center space-x-3">
                 <div className="animate-spin h-6 w-6 border-b-2 border-purple-500 rounded-full"></div>
-                <span className="text-gray-600">Finalizing results...</span>
+                <span className="text-gray-600">Finalizing GlamMefy results...</span>
               </div>
             )}
           </div>

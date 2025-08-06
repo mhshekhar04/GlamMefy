@@ -59,7 +59,7 @@ export function PreviewSection({ selectedStyle, selectedColor }: PreviewSectionP
     if (navigator.share) {
       navigator.share({
         title: 'My New Hairstyle',
-        text: `Check out my new ${selectedStyle?.name || 'hairstyle'} from StyleMe!`,
+        text: `Check out my new ${selectedStyle?.name || 'hairstyle'} from GlamMefy!`,
         url: window.location.href
       });
     } else {

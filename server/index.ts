@@ -25,7 +25,7 @@ app.use(express.urlencoded({ extended: false }));
 // MongoDB Connection
 const connectDB = async () => {
   try {
-    const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/styleme';
+    const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/GlamMefy';
     log('Attempting to connect to MongoDB with URI:', mongoURI);
     await mongoose.connect(mongoURI);
     log('MongoDB Connected successfully!');

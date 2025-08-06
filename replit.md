@@ -1,8 +1,8 @@
-# StyleMe Hair Styling App
+# GlamMefy Hair Styling App
 
 ## Overview
 
-StyleMe is a modern, interactive hair styling web application that allows users to scan their face and try different hairstyles and colors using AI technology. The app features a premium user interface with smooth animations, comprehensive style galleries, and an engaging user experience. Built as a full-stack application with React frontend and Express backend, it provides real-time hair styling visualization and personalized recommendations.
+GlamMefy is a modern, interactive hair styling web application that allows users to scan their face and try different hairstyles and colors using AI technology. The app features a premium user interface with smooth animations, comprehensive style galleries, and an engaging user experience. Built as a full-stack application with React frontend and Express backend, it provides real-time hair styling visualization and personalized recommendations.
 
 ## User Preferences
 

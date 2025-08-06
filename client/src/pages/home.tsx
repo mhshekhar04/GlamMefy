@@ -9,6 +9,7 @@ import { PreviewSection } from '@/components/preview-section';
 import { Sidebar } from '@/components/sidebar';
 import { AuthModal } from '@/components/auth-modal';
 import { HairGenerationModal } from '@/components/hair-generation-modal';
+import { PremiumFeatures } from '@/components/premium-features';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/auth-context';
 import { hairGenerationAPI } from '@/services/hair-generation-api';
@@ -215,7 +216,7 @@ export default function Home() {
               
               <div className="flex flex-col">
                 <span className="text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-                StyleMe
+                GlamMefy
               </span>
                 <div className="flex items-center space-x-2">
                   <div className="px-2 py-1 bg-gradient-to-r from-warning/20 to-accent/20 rounded-full border border-warning/30">
@@ -255,6 +256,14 @@ export default function Home() {
                 
                 <button className="relative px-4 py-2 text-slate-600 font-medium rounded-xl transition-all duration-300 hover:text-primary hover:bg-primary/5 group">
                   <span className="relative z-10">About</span>
+                  <div className="absolute inset-0 bg-primary/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                </button>
+                
+                <button 
+                  onClick={() => scrollToSection('premium')}
+                  className="relative px-4 py-2 text-slate-600 font-medium rounded-xl transition-all duration-300 hover:text-primary hover:bg-primary/5 group"
+                >
+                  <span className="relative z-10">Premium</span>
                   <div className="absolute inset-0 bg-primary/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </button>
               </nav>
@@ -339,7 +348,7 @@ export default function Home() {
                     <Scissors className="h-6 w-6 text-primary" />
                   </div>
                   <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                    StyleMe
+                    GlamMefy
                   </span>
                 </div>
               <Button 
@@ -615,6 +624,26 @@ export default function Home() {
         </section>
       )}
 
+      {/* Premium Features Section */}
+      <section id="premium" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-slate-800 mb-4">Unlock Premium Features</h2>
+            <p className="text-xl text-slate-600">Get unlimited access to advanced AI hairstyle generation</p>
+          </div>
+          
+          <div className="max-w-4xl mx-auto">
+            <PremiumFeatures 
+              onUpgrade={() => {
+                // Handle premium upgrade
+                console.log('Premium upgrade clicked');
+              }}
+              isPremium={false} // Set to true if user has premium
+            />
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="bg-slate-900 text-white py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
@@ -626,7 +655,7 @@ export default function Home() {
                   <Scissors className="h-6 w-6 text-primary" />
                 </div>
                 <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  StyleMe
+                  GlamMefy
                 </span>
               </div>
               <p className="text-slate-300 mb-6 max-w-md">
@@ -675,7 +704,7 @@ export default function Home() {
           {/* Bottom Bar */}
           <div className="border-t border-slate-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
             <p className="text-slate-400 text-sm">
-              © 2024 StyleMe. All rights reserved.
+              © 2024 GlamMefy. All rights reserved.
             </p>
             <div className="flex items-center space-x-4 mt-4 md:mt-0">
               <div className="flex items-center space-x-2">

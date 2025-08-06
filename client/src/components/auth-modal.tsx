@@ -168,7 +168,7 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-center text-2xl font-bold">
-            Welcome to StyleMe
+            Welcome to GlamMefy
           </DialogTitle>
         </DialogHeader>
         

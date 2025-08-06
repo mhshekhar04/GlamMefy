@@ -1,4 +1,4 @@
-Complete StyleMe Hair Styling App - Detailed Replit Prompt
+Complete GlamMefy Hair Styling App - Detailed Replit Prompt
 App Overview
 Create a modern, interactive hair styling web application where users can scan their face and try different hairstyles and colors using AI. The app should have a premium feel with smooth animations, glassmorphism effects, and an intuitive user experience.
 
@@ -6,7 +6,7 @@ Complete Color Specification & Usage
 Header Section
 
 Background: #ffffff with backdrop-filter: blur(10px) and box-shadow: 0 2px 20px rgba(0,0,0,0.08)
-Logo "StyleMe": #6366f1 with scissors icon in #8b5cf6
+Logo "GlamMefy": #6366f1 with scissors icon in #8b5cf6
 Navigation Links: #64748b (inactive), #6366f1 (active) with bottom border #6366f1
 Login Button: #ffffff background, #6366f1 border and text
 Sign Up Button: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) background, #ffffff text
