@@ -31,6 +31,13 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
+  // GIF guidance for head positioning
+  const headPositionGifs = {
+    front: '/gifs/look_front_small.gif',
+    left: '/gifs/turn_left_small.gif',
+    right: '/gifs/turn_right_small.gif'
+  };
+
   // Voice synthesis setup
   const speak = (text: string) => {
     try {
@@ -627,6 +634,46 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
       case 'scanning':
         return (
           <div className="text-center space-y-8">
+            {/* Small GIF Guidance - Just Above Scanner */}
+            <div className="max-w-xs mx-auto">
+              <div className="bg-white rounded-xl p-3 shadow-lg border border-gray-200">
+                <div className="flex items-center justify-center space-x-2 mb-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <h4 className="text-xs font-semibold text-gray-700">Position Guide</h4>
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                </div>
+                
+                {/* Bigger GIF Guidance - No Rectangle Background */}
+                <div className="relative overflow-hidden rounded-lg">
+                  <img 
+                    src={headPositionGifs[scanPhase]}
+                    alt={`${scanPhase} head position`}
+                    className="w-full h-32 object-contain"
+                    onError={(e) => {
+                      // Fallback if GIF doesn't load
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      const fallback = target.parentElement?.querySelector('.fallback-text');
+                      if (fallback) {
+                        fallback.classList.remove('hidden');
+                      }
+                    }}
+                  />
+                  <div className="fallback-text hidden absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
+                    <div className="text-center">
+                      <div className="text-2xl mb-1">
+                        {scanPhase === 'front' ? '👤' : scanPhase === 'left' ? '👈' : '👉'}
+                      </div>
+                      <p className="text-xs font-medium text-gray-700">
+                        {scanPhase === 'front' ? 'Straight' : 
+                         scanPhase === 'left' ? 'Left' : 'Right'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Modern Scanning Container */}
             <div className="relative mx-auto w-80 h-80 sm:w-96 sm:h-96">
               <div className="hero-scanner-frame relative overflow-hidden rounded-full shadow-2xl">
