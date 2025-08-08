@@ -398,12 +398,15 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
                 <div className="absolute inset-0 rounded-full border-4 border-transparent bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500 bg-clip-border animate-spin-slow"></div>
                 
                 {/* Inner Scanner Area */}
-                <div className="absolute inset-4 rounded-full bg-gradient-to-br from-white via-gray-50 to-gray-100 shadow-2xl">
+                <div 
+                  className="absolute inset-4 rounded-full bg-gradient-to-br from-white via-gray-50 to-gray-100 shadow-2xl cursor-pointer hover:shadow-3xl hover:scale-105 transition-all duration-300 group"
+                  onClick={startCamera}
+                >
                   {/* Scanner Icon */}
                   <div className="relative flex items-center justify-center h-full">
-                    <div className="relative">
-                      <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center shadow-lg">
-                        <Camera className="h-12 w-12 text-white" />
+                    <div className="relative group-hover:scale-110 transition-transform duration-300">
+                      <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl">
+                        <Camera className="h-12 w-12 text-white group-hover:animate-pulse" />
                       </div>
                       <div className="absolute -top-2 -right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center animate-ping shadow-lg">
                         <div className="w-4 h-4 bg-white rounded-full"></div>
@@ -448,6 +451,7 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
                   GlamMefy Scanner
                 </h3>
                 <p className="text-gray-600 text-lg">Advanced 3D Face Recognition & Analysis</p>
+                <p className="text-sm text-gray-500 italic">Click the scanner to begin</p>
               </div>
 
               {/* Feature Grid */}
