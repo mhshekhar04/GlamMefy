@@ -51,7 +51,7 @@ export class MaskingAPIService {
     });
   }
 
-  public async processFaceCollage(imageFile: File): Promise<MaskingResult> {
+  public async processFaceCollage(imageFile: File, options?: { prompt?: string }): Promise<MaskingResult> {
     try {
       // Log the input collage image details
       console.log('Input collage image file:', imageFile);
@@ -62,10 +62,14 @@ export class MaskingAPIService {
       const base64DataUrl = await this.fileToBase64(imageFile);
       console.log('Converted to Base64 data URL:', base64DataUrl.substring(0, 100) + '...');
 
+      // Use custom prompt if provided, otherwise use default
+      const prompt = options?.prompt || "mask the head hair region of all the images in uploaded image";
+      console.log('Using masking prompt:', prompt);
+
       // Call the FAL AI masking API with head/hair region prompt using Base64 data URL
       const result = await fal.subscribe("fal-ai/evf-sam", {
         input: {
-          prompt: "mask the head hair region of all the images in uploaded image",
+          prompt: prompt,
           image_url: base64DataUrl, // Use Base64 data URL directly
           mask_only: true // Return only the mask
         },
@@ -85,7 +89,7 @@ export class MaskingAPIService {
     }
   }
 
-  public async processFaceCollageWithQueue(imageFile: File): Promise<MaskingResult> {
+  public async processFaceCollageWithQueue(imageFile: File, options?: { prompt?: string }): Promise<MaskingResult> {
     try {
       // Log the input collage image details
       console.log('Input collage image file:', imageFile);
@@ -96,10 +100,14 @@ export class MaskingAPIService {
       const base64DataUrl = await this.fileToBase64(imageFile);
       console.log('Converted to Base64 data URL:', base64DataUrl.substring(0, 100) + '...');
 
+      // Use custom prompt if provided, otherwise use default
+      const prompt = options?.prompt || "Mask only the scalp hair in the full-face crop, excluding all facial hair (beard, eyebrows). Focus on the hair on top of the head, sideburns, and back of the head. Do not include any facial hair, eyebrows, or beard.";
+      console.log('Using masking prompt:', prompt);
+
       // Submit to queue for long-running processing using Base64 data URL
       const { request_id } = await fal.queue.submit("fal-ai/evf-sam", {
         input: {
-          prompt: "mask the head hair region of all the images in uploaded image",
+          prompt: prompt,
           image_url: base64DataUrl, // Use Base64 data URL directly
           mask_only: true // Return only the mask
         }

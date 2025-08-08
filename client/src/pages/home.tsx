@@ -59,14 +59,21 @@ export default function Home() {
 
   const handleScanComplete = (scannedData?: any) => {
     // Store the scanned data for use in hair generation
+    console.log('=== handleScanComplete called ===');
+    console.log('Received scanned data:', scannedData);
+    console.log('Original collage URL from data:', scannedData?.originalCollageUrl);
+    console.log('Masked image URL from data:', scannedData?.maskedImageUrl);
+    console.log('Images array from data:', scannedData?.images);
+    
     if (scannedData) {
       setScannedImages(scannedData.images || []);
       setOriginalCollageUrl(scannedData.originalCollageUrl || null);
       setMaskedImageUrl(scannedData.maskedImageUrl || null);
       
-      console.log('Received scanned data:', scannedData);
-      console.log('Original collage URL:', scannedData.originalCollageUrl);
-      console.log('Masked image URL:', scannedData.maskedImageUrl);
+      console.log('=== State Updated ===');
+      console.log('Set scannedImages:', scannedData.images?.length || 0);
+      console.log('Set originalCollageUrl:', scannedData.originalCollageUrl);
+      console.log('Set maskedImageUrl:', scannedData.maskedImageUrl);
     }
     
     document.getElementById('styles')?.scrollIntoView({ behavior: 'smooth' });
@@ -115,6 +122,12 @@ export default function Home() {
     if (!selectedTemplate) return;
 
     // Check if we have scanned images and masked image
+    console.log('=== handleGenerateHairStyle called ===');
+    console.log('Selected template:', selectedTemplate);
+    console.log('Original collage URL:', originalCollageUrl);
+    console.log('Masked image URL:', maskedImageUrl);
+    console.log('Scanned images length:', scannedImages.length);
+    
     if (!originalCollageUrl || !maskedImageUrl) {
       console.log('No scanned images available. Please scan your face first.');
       console.log('Original collage URL:', originalCollageUrl);
@@ -178,15 +191,15 @@ export default function Home() {
   const handleGenerationComplete = (resultUrl: string) => {
     console.log('Received generated image URL:', resultUrl);
     
-    // Split the generated collage into 3 separate images
-    splitCollageIntoThree(resultUrl).then(splitImages => {
+    // Split the generated collage into 3 individual images
+    splitCollageIntoThree(resultUrl).then((splitImages) => {
+      console.log('Split images:', splitImages);
       setGeneratedImages(splitImages);
       setShowOutput(true);
       setShowGenerationModal(false);
-      console.log('Split generated collage into 3 images:', splitImages);
-    }).catch(error => {
-      console.error('Failed to split collage:', error);
-      // Fallback: use the same image for all 3
+    }).catch((error) => {
+      console.error('Error splitting collage:', error);
+      // Fallback: use the same image for all 3 views
       setGeneratedImages([resultUrl, resultUrl, resultUrl]);
       setShowOutput(true);
       setShowGenerationModal(false);

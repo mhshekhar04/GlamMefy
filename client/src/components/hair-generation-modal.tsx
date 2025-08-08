@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Sparkles, Wand2, Palette, Zap, CheckCircle, Brain, Upload, Image as ImageIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Wand2, Upload, ImageIcon, Loader2, AlertCircle, CheckCircle, Brain, Palette } from 'lucide-react';
 import React from 'react';
 import { hairGenerationAPI } from '../services/hair-generation-api';
+import { InpaintingDebug } from './inpainting-debug';
 
 interface HairGenerationModalProps {
   isOpen: boolean;
@@ -20,14 +22,23 @@ export function HairGenerationModal({
   maskImageUrl,
   selectedTemplate
 }: HairGenerationModalProps) {
-  const [generationStep, setGenerationStep] = useState(0);
-  const [progress, setProgress] = useState(0);
+  const [maskedImage, setMaskedImage] = useState<string | null>(null);
+  const [maskingLoading, setMaskingLoading] = useState(false);
+  const [inpaintingDebug, setInpaintingDebug] = useState<any>(null);
+  
+  // Inpainting debug state
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generationStep, setGenerationStep] = useState('Waiting for template...');
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
+  const [templatePrompt, setTemplatePrompt] = useState<string | null>(null);
+  const [loraPath, setLoraPath] = useState<string | null>(null);
+  
+  // Original state variables
+  const [generationStepNumber, setGenerationStepNumber] = useState(0);
+  const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [uploadedImagePreview, setUploadedImagePreview] = useState<string | null>(null);
-  const [maskedImage, setMaskedImage] = useState<string | null>(null);
-  const [maskingLoading, setMaskingLoading] = useState(false);
 
   const steps = [
     { name: 'Uploading Image', icon: Upload, color: 'blue' },
@@ -44,7 +55,7 @@ export function HairGenerationModal({
         startRealGeneration();
       } else {
         // Show upload interface
-        setGenerationStep(0);
+        setGenerationStepNumber(0);
       }
     }
   }, [isOpen, originalImageUrl, maskImageUrl]);
@@ -134,22 +145,22 @@ export function HairGenerationModal({
 
     setIsGenerating(true);
     setError(null);
-    setGenerationStep(0);
+    setGenerationStepNumber(0);
     setProgress(0);
 
     try {
       // Step 1: Uploading Image
-      setGenerationStep(0);
+      setGenerationStepNumber(0);
       setProgress(10);
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Step 2: Analyzing Hair Mask
-      setGenerationStep(1);
+      setGenerationStepNumber(1);
       setProgress(25);
       await new Promise(resolve => setTimeout(resolve, 800));
 
       // Step 3: Start Real API Call
-      setGenerationStep(2);
+      setGenerationStepNumber(2);
       setProgress(40);
 
       // Initialize hair generation API
@@ -160,6 +171,13 @@ export function HairGenerationModal({
       console.log('Image to use:', imageToUse);
       console.log('Mask to use:', maskToUse);
       console.log('Template:', selectedTemplate.name);
+      console.log('Template prompt:', selectedTemplate.prompt);
+      console.log('Template LoRA path:', selectedTemplate.loraPath);
+
+      // Set debug information
+      setTemplatePrompt(selectedTemplate.prompt);
+      setLoraPath(selectedTemplate.loraPath);
+      setGenerationStep('Calling inpainting API...');
 
       // Call the real hair generation API
       const result = await hairGenerationAPI.generateHairStyle(
@@ -169,12 +187,12 @@ export function HairGenerationModal({
       );
 
       // Step 4: Processing Results
-      setGenerationStep(3);
+      setGenerationStepNumber(3);
       setProgress(75);
       await new Promise(resolve => setTimeout(resolve, 500));
 
       // Step 5: Finalize
-      setGenerationStep(4);
+      setGenerationStepNumber(4);
       setProgress(100);
       await new Promise(resolve => setTimeout(resolve, 500));
 
@@ -184,6 +202,9 @@ export function HairGenerationModal({
       if (result.images && result.images.length > 0) {
         const generatedImageUrl = result.images[0].url;
         console.log('Generated image URL:', generatedImageUrl);
+        
+        setGeneratedImageUrl(generatedImageUrl);
+        setGenerationStep('Generation completed!');
         
         // Pass the real result back
         onGenerationComplete(generatedImageUrl);
@@ -209,6 +230,17 @@ export function HairGenerationModal({
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+      {/* Inpainting Debug Component */}
+      <InpaintingDebug
+        originalCollageUrl={originalImageUrl}
+        maskedCollageUrl={maskImageUrl}
+        templatePrompt={templatePrompt}
+        loraPath={loraPath}
+        isGenerating={isGenerating}
+        generationStep={generationStep}
+        generatedImageUrl={generatedImageUrl}
+      />
+      
       <div className="bg-white rounded-3xl p-8 max-w-2xl mx-4 shadow-2xl max-h-[90vh] overflow-y-auto">
         <div className="text-center">
           {/* Header */}
@@ -318,12 +350,12 @@ export function HairGenerationModal({
           {/* Current Step */}
           <div className="mb-8">
             <div className="flex items-center justify-center space-x-3 mb-4">
-              <div className={`w-12 h-12 bg-gradient-to-br from-${steps[generationStep]?.color}-100 to-${steps[generationStep]?.color}-200 rounded-full flex items-center justify-center`}>
-                {steps[generationStep]?.icon && React.createElement(steps[generationStep].icon, { className: `h-6 w-6 text-${steps[generationStep]?.color}-500` })}
+              <div className={`w-12 h-12 bg-gradient-to-br from-${steps[generationStepNumber]?.color}-100 to-${steps[generationStepNumber]?.color}-200 rounded-full flex items-center justify-center`}>
+                {steps[generationStepNumber]?.icon && React.createElement(steps[generationStepNumber].icon, { className: `h-6 w-6 text-${steps[generationStepNumber]?.color}-500` })}
               </div>
               <div className="text-left">
-                <h3 className="font-semibold text-gray-800">{steps[generationStep]?.name}</h3>
-                <p className="text-sm text-gray-500">Step {generationStep + 1} of {steps.length}</p>
+                <h3 className="font-semibold text-gray-800">{steps[generationStepNumber]?.name}</h3>
+                <p className="text-sm text-gray-500">Step {generationStepNumber + 1} of {steps.length}</p>
               </div>
             </div>
           </div>

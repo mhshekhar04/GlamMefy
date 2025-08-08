@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Camera, Sparkles, Brain, CheckCircle, RotateCcw, Zap, Eye, Scan, Cpu, Activity } from 'lucide-react';
+import { maskingAPI } from '../services/masking-api';
 
 interface HeroScannerProps {
   onScanComplete: (scannedData?: any) => void;
@@ -17,6 +18,13 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
   const [capturedImages, setCapturedImages] = useState<string[]>([]);
   const [showCollage, setShowCollage] = useState(false);
   const [scanIntensity, setScanIntensity] = useState(0);
+  
+  // Masking process state
+  const [isMasking, setIsMasking] = useState(false);
+  const [maskedImages, setMaskedImages] = useState<string[]>([]);
+  const [originalCollageUrl, setOriginalCollageUrl] = useState<string | null>(null);
+  const [maskedCollageUrl, setMaskedCollageUrl] = useState<string | null>(null);
+  const [maskingStep, setMaskingStep] = useState('Waiting for images...');
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -39,11 +47,11 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
     (async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: 640, height: 480, facingMode: 'user' } 
-        });
+        video: { width: 640, height: 480, facingMode: 'user' } 
+      });
         streamRef.current = stream;
 
-        if (videoRef.current) {
+      if (videoRef.current) {
           videoRef.current.srcObject = stream;
           await videoRef.current.play();
           setTimeout(() => captureImage('front'), 5000);
@@ -53,6 +61,16 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
       }
     })();
   }, [scanState]);
+
+  // Auto-start masking when scan is complete
+  useEffect(() => {
+    if (scanState === 'complete' && capturedImages.length === 3 && maskedImages.length === 0) {
+      console.log('Scan complete detected, starting masking automatically...');
+      setTimeout(async () => {
+        await startMaskingProcess();
+      }, 500);
+    }
+  }, [scanState, capturedImages.length, maskedImages.length]);
 
   const startCamera = () => {
     setScanPhase('front');
@@ -87,21 +105,264 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
     }
   };
 
-  const processImages = () => {
+  const processImages = async () => {
+    console.log('=== Starting Image Processing ===');
+    console.log('Captured images count:', capturedImages.length);
+    
     let current = 0;
     const iv = setInterval(() => {
       current += Math.random() * 15;
       if (current >= 100) {
         clearInterval(iv);
         setProgress(100);
-        setTimeout(() => {
-          setScanState('complete');
-          setShowCollage(true);
-        }, 500);
+        console.log('Processing complete, starting masking...');
+        
+        // Immediately start masking process
+        setScanState('complete');
+        setShowCollage(true);
+        
+        // Start masking process after a short delay to ensure state is updated
+        setTimeout(async () => {
+          console.log('Starting automatic masking process...');
+          console.log('Captured images at masking start:', capturedImages.length);
+          await startMaskingProcess();
+        }, 1000);
+        
       } else {
         setProgress(current);
       }
     }, 200);
+  };
+
+  const startMaskingProcess = async () => {
+    console.log('=== Starting Individual Masking Process ===');
+    console.log('Captured images:', capturedImages);
+    console.log('Captured images length:', capturedImages.length);
+    
+    if (capturedImages.length !== 3) {
+      console.error('Expected 3 images, but got:', capturedImages.length);
+      setMaskingStep('Error: Expected 3 images for masking');
+      setIsMasking(false);
+      return;
+    }
+
+    setIsMasking(true);
+    setMaskingStep('Starting individual masking...');
+    setMaskedImages([]);
+    
+    try {
+      // Initialize masking API
+      const apiKey = import.meta.env.VITE_FAL_KEY;
+      if (!apiKey) {
+        throw new Error('FAL API key not found');
+      }
+      console.log('API Key found:', apiKey.substring(0, 10) + '...');
+      maskingAPI.initialize(apiKey);
+      console.log('Masking API initialized with key');
+
+      // Test the first image to verify API is working
+      console.log('Testing masking API with first image...');
+      setMaskingStep('Testing masking API...');
+      
+      const testResponse = await fetch(capturedImages[0]);
+      if (!testResponse.ok) {
+        throw new Error(`Failed to fetch test image: ${testResponse.status}`);
+      }
+      const testBlob = await testResponse.blob();
+      const testFile = new File([testBlob], 'test-face.png', { type: 'image/png' });
+      
+      console.log('Test file created:', testFile.size, 'bytes');
+      
+      // Test the masking API
+      const testResult = await maskingAPI.processFaceCollage(testFile, {
+        prompt: "Mask only the scalp hair in the full-face crop, excluding all facial hair (beard, eyebrows). Focus on the hair on top of the head, sideburns, and back of the head. Do not include any facial hair, eyebrows, or beard."
+      });
+      
+      console.log('Test masking successful:', testResult);
+      setMaskingStep('API test successful, processing all images...');
+
+      // Process each image individually
+      console.log('Processing 3 images individually...');
+      setMaskingStep('Processing 3 images individually...');
+      
+      const maskedImagesArray: string[] = [];
+      
+      for (let i = 0; i < capturedImages.length; i++) {
+        console.log(`Processing image ${i + 1}/${capturedImages.length}...`);
+        setMaskingStep(`Masking image ${i + 1}/3...`);
+        
+        try {
+          // Convert image URL to blob
+          console.log(`Fetching image ${i + 1}:`, capturedImages[i]);
+          const response = await fetch(capturedImages[i]);
+          
+          if (!response.ok) {
+            throw new Error(`Failed to fetch image ${i + 1}: ${response.status}`);
+          }
+          
+          const blob = await response.blob();
+          console.log(`Image ${i + 1} blob size:`, blob.size);
+          
+          // Create file from blob
+          const file = new File([blob], `face-${i + 1}.png`, { type: 'image/png' });
+          
+          console.log(`Image ${i + 1} file:`, file);
+          console.log(`Image ${i + 1} size:`, file.size, 'bytes');
+          
+          // Call masking API for individual image
+          console.log(`Calling masking API for image ${i + 1}...`);
+          const maskedResult = await maskingAPI.processFaceCollage(file, {
+            prompt: "Mask only the scalp hair in the full-face crop, excluding all facial hair (beard, eyebrows). Focus on the hair on top of the head, sideburns, and back of the head. Do not include any facial hair, eyebrows, or beard."
+          });
+          
+          console.log(`Masking API result for image ${i + 1}:`, maskedResult);
+          console.log(`Masked image ${i + 1} URL:`, maskedResult.image.url);
+          
+          maskedImagesArray.push(maskedResult.image.url);
+          setMaskedImages([...maskedImagesArray]);
+          
+          console.log(`Successfully masked image ${i + 1}`);
+          
+        } catch (imageError) {
+          console.error(`Error processing image ${i + 1}:`, imageError);
+          setMaskingStep(`Error masking image ${i + 1}: ${imageError instanceof Error ? imageError.message : 'Unknown error'}`);
+          setIsMasking(false);
+          return;
+        }
+      }
+      
+      console.log('All 3 images masked successfully:', maskedImagesArray);
+      
+      if (maskedImagesArray.length !== 3) {
+        throw new Error(`Expected 3 masked images, but got ${maskedImagesArray.length}`);
+      }
+      
+      setMaskingStep('Creating collage from masked images...');
+      
+      // Create collage from the 3 masked images
+      const collageCanvas = document.createElement('canvas');
+      const ctx = collageCanvas.getContext('2d');
+      
+      if (!ctx) {
+        throw new Error('Could not get canvas context');
+      }
+
+      collageCanvas.width = 900;
+      collageCanvas.height = 300;
+
+      // Load all 3 masked images
+      const maskedImagePromises = maskedImagesArray.map((src) => {
+        return new Promise<HTMLImageElement>((resolve, reject) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => resolve(img);
+          img.onerror = reject;
+          img.src = src;
+        });
+      });
+
+      const loadedMaskedImages = await Promise.all(maskedImagePromises);
+      console.log('Loaded masked images successfully:', loadedMaskedImages.length);
+
+      // Draw masked images side by side in the collage
+      const imageWidth = 300;
+      const imageHeight = 300;
+      
+      loadedMaskedImages.forEach((img, index) => {
+        ctx.drawImage(img, index * imageWidth, 0, imageWidth, imageHeight);
+      });
+
+      // Convert canvas to blob for final collage
+      const collageBlob = await new Promise<Blob>((resolve) => {
+        collageCanvas.toBlob((blob) => {
+          if (blob) resolve(blob);
+        }, 'image/png');
+      });
+
+      const maskedCollagePreviewUrl = URL.createObjectURL(collageBlob);
+      setMaskedCollageUrl(maskedCollagePreviewUrl);
+
+      // Create original collage for comparison
+      const originalCollageCanvas = document.createElement('canvas');
+      const originalCtx = originalCollageCanvas.getContext('2d');
+      
+      if (!originalCtx) {
+        throw new Error('Could not get canvas context for original collage');
+      }
+
+      originalCollageCanvas.width = 900;
+      originalCollageCanvas.height = 300;
+
+      // Load original images for comparison
+      const originalImagePromises = capturedImages.map((src) => {
+        return new Promise<HTMLImageElement>((resolve, reject) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => resolve(img);
+          img.onerror = reject;
+          img.src = src;
+        });
+      });
+
+      const loadedOriginalImages = await Promise.all(originalImagePromises);
+      
+      // Draw original images side by side
+      loadedOriginalImages.forEach((img, index) => {
+        originalCtx.drawImage(img, index * imageWidth, 0, imageWidth, imageHeight);
+      });
+
+      const originalCollageBlob = await new Promise<Blob>((resolve) => {
+        originalCollageCanvas.toBlob((blob) => {
+          if (blob) resolve(blob);
+        }, 'image/png');
+      });
+
+      const originalCollagePreviewUrl = URL.createObjectURL(originalCollageBlob);
+      setOriginalCollageUrl(originalCollagePreviewUrl);
+      
+      console.log('=== URL Setting Debug ===');
+      console.log('Set masked collage URL to:', maskedCollagePreviewUrl);
+      console.log('Set original collage URL to:', originalCollagePreviewUrl);
+      console.log('URLs are valid:', !!maskedCollagePreviewUrl, !!originalCollagePreviewUrl);
+      console.log('Blob sizes - masked:', collageBlob.size, 'original:', originalCollageBlob.size);
+      
+      // Validate URLs by testing them
+      try {
+        const maskedTest = await fetch(maskedCollagePreviewUrl);
+        const originalTest = await fetch(originalCollagePreviewUrl);
+        console.log('URL validation - masked:', maskedTest.ok, 'original:', originalTest.ok);
+      } catch (error) {
+        console.error('URL validation failed:', error);
+      }
+      
+      setMaskingStep('Masking completed successfully!');
+      setIsMasking(false);
+      
+      // Add a small delay to ensure state updates are complete
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Automatically call onScanComplete with the processed data
+      console.log('=== Automatically calling onScanComplete ===');
+      console.log('originalCollageUrl:', originalCollagePreviewUrl);
+      console.log('maskedCollageUrl:', maskedCollagePreviewUrl);
+      console.log('capturedImages length:', capturedImages.length);
+      console.log('maskedImages length:', maskedImagesArray.length);
+      
+      onScanComplete({
+        images: capturedImages,
+        originalCollageUrl: originalCollagePreviewUrl,
+        maskedImageUrl: maskedCollagePreviewUrl
+      });
+      
+      console.log('Masking process completed successfully');
+      console.log('Original collage URL:', originalCollagePreviewUrl);
+      console.log('Masked collage URL:', maskedCollagePreviewUrl);
+
+    } catch (error) {
+      console.error('Individual masking process failed:', error);
+      setMaskingStep('Masking failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      setIsMasking(false);
+    }
   };
 
   const resetScanner = () => {
@@ -110,6 +371,11 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
     setProgress(0);
     setCapturedImages([]);
     setShowCollage(false);
+    setIsMasking(false);
+    setMaskedImages([]);
+    setOriginalCollageUrl(null);
+    setMaskedCollageUrl(null);
+    setMaskingStep('Waiting for images...');
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
@@ -174,7 +440,7 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
                 </div>
               </div>
             </div>
-
+            
             {/* Content Section */}
             <div className="space-y-6">
               <div className="space-y-3">
@@ -233,11 +499,11 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
             <div className="relative mx-auto w-96 h-96">
               <div className="hero-scanner-frame relative overflow-hidden rounded-full shadow-2xl">
                 {/* Video Feed */}
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
                   className="absolute inset-0 w-full h-full object-cover rounded-full"
                   style={{ transform: 'scale(1.05)' }}
                 />
@@ -369,7 +635,7 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
                 </div>
               </div>
             </div>
-
+            
             {/* Processing Status */}
             <div className="space-y-4">
               <h3 className="text-2xl font-bold text-gray-800">Processing Images</h3>
@@ -409,7 +675,74 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
       case 'complete':
         return (
           <div className="text-center space-y-8">
-            {showCollage ? (
+            {/* Show processing modal until masking is complete */}
+            {isMasking || maskedImages.length < 3 ? (
+              <>
+                {/* Processing Animation */}
+                <div className="relative mx-auto w-80 h-80">
+                  {/* Processing Ring */}
+                  <div className="absolute inset-0 rounded-full border-4 border-transparent bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500 bg-clip-border animate-spin-slow"></div>
+                  
+                  {/* Inner Circle */}
+                  <div className="absolute inset-8 rounded-full bg-gradient-to-r from-purple-500/20 via-blue-500/20 to-pink-500/20 animate-pulse"></div>
+                  
+                  {/* Central Icon */}
+                  <div className="absolute inset-16 flex items-center justify-center">
+                    <div className="relative">
+                      <Brain className="h-16 w-16 text-purple-500 animate-pulse" />
+                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center animate-ping">
+                        <div className="w-3 h-3 bg-white rounded-full"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Processing Status */}
+                <div className="space-y-4">
+                  <h3 className="text-2xl font-bold text-gray-800">GlamMefy AI Analysis</h3>
+                  <p className="text-gray-600">Processing facial features and generating hair masks...</p>
+                  
+                  {/* Masking Progress */}
+                  <div className="w-full max-w-md mx-auto">
+                    <div className="flex justify-between text-sm text-gray-600 mb-2">
+                      <span>Masking Progress</span>
+                      <span>{maskedImages.length}/3</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-500"
+                        style={{ width: `${(maskedImages.length / 3) * 100}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                  
+                  {/* Current Step */}
+                  <div className="bg-blue-50 rounded-lg p-4">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                      <span className="text-sm font-medium text-blue-700">{maskingStep}</span>
+                    </div>
+                  </div>
+                  
+                  {/* Processing Steps */}
+                  <div className="flex justify-center space-x-4 text-xs text-gray-500">
+                    <div className="flex items-center space-x-1">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span>Face Detection</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <div className={`w-2 h-2 rounded-full ${maskedImages.length > 0 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                      <span>Hair Masking</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <div className={`w-2 h-2 rounded-full ${maskedImages.length === 3 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                      <span>Collage Creation</span>
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : (
+              // Show final results only after masking is complete
               <>
                 {/* Success Header */}
                 <div className="space-y-4">
@@ -420,10 +753,10 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
                     <div>
                       <h3 className="text-2xl font-bold text-gray-800">GlamMefy Scan Complete!</h3>
                       <p className="text-gray-600">AI analysis finished successfully</p>
-                    </div>
-                  </div>
                 </div>
-
+              </div>
+            </div>
+            
                 {/* AI Analysis Results */}
                 <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-6 border border-purple-200">
                   <div className="flex items-center justify-center space-x-2 mb-4">
@@ -478,29 +811,29 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
                       ))}
                     </div>
                   </div>
-                </div>
-
+            </div>
+            
                 {/* Action Buttons */}
                 <div className="space-y-3">
                   <Button 
-                    onClick={() => onScanComplete({
-                      images: capturedImages,
-                      originalCollageUrl: capturedImages[0],
-                      maskedImageUrl: capturedImages[0]
-                    })} 
+                    onClick={() => {
+                      // The onScanComplete is now called automatically when masking completes
+                      // No need to call it manually here
+                      console.log('Continue button clicked - scanning already completed');
+                    }} 
                     className="w-full py-4 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 hover:shadow-xl hover:scale-105 transition-all duration-300 rounded-xl font-semibold"
                   >
                     <Sparkles className="h-5 w-5 mr-2" />
                     Continue to Hair Styles
                   </Button>
-                  <Button 
+            <Button
                     variant="outline" 
                     onClick={resetScanner} 
                     className="w-full py-3 border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 rounded-xl"
-                  >
+            >
                     <RotateCcw className="h-4 w-4 mr-2" />
                     Scan Again
-                  </Button>
+            </Button>
                 </div>
 
                 {/* Additional Info */}
@@ -511,11 +844,6 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
                   </div>
                 </div>
               </>
-            ) : (
-              <div className="flex items-center justify-center space-x-3">
-                <div className="animate-spin h-6 w-6 border-b-2 border-purple-500 rounded-full"></div>
-                <span className="text-gray-600">Finalizing GlamMefy results...</span>
-              </div>
             )}
           </div>
         );
@@ -525,5 +853,10 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
     }
   };
 
-  return <div className="w-full">{renderScannerContent()}</div>;
+  return (
+    <div className="w-full">
+      
+      {renderScannerContent()}
+    </div>
+  );
 }

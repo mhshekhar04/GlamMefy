@@ -5,6 +5,7 @@ import { maskingAPI } from '../services/masking-api';
 import { hairGenerationAPI } from '../services/hair-generation-api';
 import { HairTemplates } from './hair-templates';
 import { HairGenerationModal } from './hair-generation-modal';
+import { DebugImageViewer } from './debug-image-viewer';
 
 interface ThreeDCollageProps {
   images: string[];
@@ -34,6 +35,12 @@ export function ThreeDCollage({ images, onScanComplete }: ThreeDCollageProps) {
   const [showGenerationModal, setShowGenerationModal] = useState(false);
   const [generatedImages, setGeneratedImages] = useState<string[]>([]);
   const [showOutput, setShowOutput] = useState(false);
+  
+  // Debug state for tracking masked images
+  const [maskedImages, setMaskedImages] = useState<string[]>([]);
+  const [maskedCollageUrl, setMaskedCollageUrl] = useState<string | null>(null);
+  const [currentStep, setCurrentStep] = useState('Waiting for images...');
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     console.log('ThreeDCollage received images:', images.length);
@@ -44,15 +51,60 @@ export function ThreeDCollage({ images, onScanComplete }: ThreeDCollageProps) {
   }, [images]);
 
   const handleMaskingProcess = async () => {
-    console.log('=== Starting Masking Process ===');
+    console.log('=== Starting Individual Masking Process ===');
     console.log('Images array length:', images.length);
     console.log('Images:', images);
     
     setIsMasking(true);
     setIsAnimating(true);
+    setIsProcessing(true);
+    setCurrentStep('Starting individual masking...');
+    setMaskedImages([]); // Reset masked images
     
     try {
-      // Create a 3-image collage
+      // Initialize masking API with environment variable
+      const apiKey = import.meta.env.VITE_FAL_KEY;
+      maskingAPI.initialize(apiKey);
+
+      // Process each image individually for better masking results
+      console.log('Processing 3 images individually...');
+      setCurrentStep('Processing 3 images individually...');
+      
+      const maskedImagesArray: string[] = [];
+      
+      for (let i = 0; i < images.length; i++) {
+        console.log(`Processing image ${i + 1}/${images.length}...`);
+        setCurrentStep(`Masking image ${i + 1}/3...`);
+        
+        // Convert image URL to blob
+        const response = await fetch(images[i]);
+        const blob = await response.blob();
+        
+        // Create file from blob
+        const file = new File([blob], `face-${i + 1}.png`, { type: 'image/png' });
+        
+        console.log(`Image ${i + 1} file:`, file);
+        console.log(`Image ${i + 1} size:`, file.size, 'bytes');
+        console.log(`Image ${i + 1} type:`, file.type);
+        
+        // Call masking API for individual image
+        console.log(`Calling masking API for image ${i + 1}...`);
+        const maskedResult = await maskingAPI.processFaceCollage(file, {
+          prompt: "Mask only the scalp hair in the full-face crop, excluding all facial hair (beard, eyebrows). Focus on the hair on top of the head, sideburns, and back of the head. Do not include any facial hair, eyebrows, or beard."
+        });
+        
+        console.log(`Masking API result for image ${i + 1}:`, maskedResult);
+        console.log(`Masked image ${i + 1} URL:`, maskedResult.image.url);
+        
+        maskedImagesArray.push(maskedResult.image.url);
+        setMaskedImages([...maskedImagesArray]); // Update state to show progress
+      }
+      
+      console.log('All 3 images masked successfully:', maskedImagesArray);
+      setCurrentStep('Creating collage from masked images...');
+      
+      // Create collage from the 3 masked images
+      console.log('Creating collage from masked images...');
       const collageCanvas = document.createElement('canvas');
       const ctx = collageCanvas.getContext('2d');
       
@@ -64,8 +116,8 @@ export function ThreeDCollage({ images, onScanComplete }: ThreeDCollageProps) {
       collageCanvas.width = 900;
       collageCanvas.height = 300;
 
-      // Load all 3 images
-      const imagePromises = images.map((src) => {
+      // Load all 3 masked images
+      const maskedImagePromises = maskedImagesArray.map((src) => {
         return new Promise<HTMLImageElement>((resolve, reject) => {
           const img = new Image();
           img.crossOrigin = 'anonymous';
@@ -75,59 +127,89 @@ export function ThreeDCollage({ images, onScanComplete }: ThreeDCollageProps) {
         });
       });
 
-      const loadedImages = await Promise.all(imagePromises);
-      console.log('Loaded images successfully:', loadedImages.length);
+      const loadedMaskedImages = await Promise.all(maskedImagePromises);
+      console.log('Loaded masked images successfully:', loadedMaskedImages.length);
 
-      // Draw images side by side in the collage
+      // Draw masked images side by side in the collage
       const imageWidth = 300;
       const imageHeight = 300;
       
-      loadedImages.forEach((img, index) => {
+      loadedMaskedImages.forEach((img, index) => {
         ctx.drawImage(img, index * imageWidth, 0, imageWidth, imageHeight);
       });
 
-      // Convert canvas to blob
-      const blob = await new Promise<Blob>((resolve) => {
+      // Convert canvas to blob for final collage
+      const collageBlob = await new Promise<Blob>((resolve) => {
         collageCanvas.toBlob((blob) => {
           if (blob) resolve(blob);
         }, 'image/png');
       });
 
-      // Create file from blob
-      const file = new File([blob], 'face-collage.png', { type: 'image/png' });
+      // Create file from collage blob
+      const collageFile = new File([collageBlob], 'masked-face-collage.png', { type: 'image/png' });
 
-      // Log the input collage image
-      console.log('Input collage image file:', file);
-      console.log('Input collage image size:', file.size, 'bytes');
-      console.log('Input collage image type:', file.type);
+      // Log the final masked collage
+      console.log('Final masked collage file:', collageFile);
+      console.log('Final masked collage size:', collageFile.size, 'bytes');
+      console.log('Final masked collage type:', collageFile.type);
       
-      // Create a preview URL for the collage
-      const collagePreviewUrl = URL.createObjectURL(blob);
-      console.log('Input collage preview URL:', collagePreviewUrl);
+      // Create a preview URL for the masked collage
+      const maskedCollagePreviewUrl = URL.createObjectURL(collageBlob);
+      console.log('Masked collage preview URL:', maskedCollagePreviewUrl);
+      setMaskedCollageUrl(maskedCollagePreviewUrl);
 
-      // Initialize masking API with environment variable
-      const apiKey = import.meta.env.VITE_FAL_KEY;
-      maskingAPI.initialize(apiKey);
+      // Create a preview URL for the original collage (for comparison)
+      const originalCollageCanvas = document.createElement('canvas');
+      const originalCtx = originalCollageCanvas.getContext('2d');
+      
+      if (!originalCtx) {
+        throw new Error('Could not get canvas context for original collage');
+      }
 
-      // Call masking API
-      console.log('Calling masking API...');
-      const maskedResult = await maskingAPI.processFaceCollage(file);
+      originalCollageCanvas.width = 900;
+      originalCollageCanvas.height = 300;
+
+      // Load original images for comparison
+      const originalImagePromises = images.map((src) => {
+        return new Promise<HTMLImageElement>((resolve, reject) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => resolve(img);
+          img.onerror = reject;
+          img.src = src;
+        });
+      });
+
+      const loadedOriginalImages = await Promise.all(originalImagePromises);
       
-      console.log('Masking API result:', maskedResult);
-      console.log('Masked image URL:', maskedResult.image.url);
+      // Draw original images side by side
+      loadedOriginalImages.forEach((img, index) => {
+        originalCtx.drawImage(img, index * imageWidth, 0, imageWidth, imageHeight);
+      });
+
+      const originalCollageBlob = await new Promise<Blob>((resolve) => {
+        originalCollageCanvas.toBlob((blob) => {
+          if (blob) resolve(blob);
+        }, 'image/png');
+      });
+
+      const originalCollagePreviewUrl = URL.createObjectURL(originalCollageBlob);
       
-      setMaskedImageUrl(maskedResult.image.url);
-      setOriginalCollageUrl(collagePreviewUrl); // Store the original collage URL
+      setMaskedImageUrl(maskedCollagePreviewUrl);
+      setOriginalCollageUrl(originalCollagePreviewUrl);
       
-      console.log('Set masked image URL to:', maskedResult.image.url);
-      console.log('Set original collage URL to:', collagePreviewUrl);
+      console.log('Set masked collage URL to:', maskedCollagePreviewUrl);
+      console.log('Set original collage URL to:', originalCollagePreviewUrl);
+      
+      setCurrentStep('Masking completed successfully!');
+      setIsProcessing(false);
       
       // Pass scanned data back to parent component
       if (onScanComplete) {
         const scannedData = {
           images: images,
-          originalCollageUrl: collagePreviewUrl,
-          maskedImageUrl: maskedResult.image.url
+          originalCollageUrl: originalCollagePreviewUrl,
+          maskedImageUrl: maskedCollagePreviewUrl
         };
         console.log('Calling onScanComplete with:', scannedData);
         onScanComplete(scannedData);
@@ -141,7 +223,9 @@ export function ThreeDCollage({ images, onScanComplete }: ThreeDCollageProps) {
       }, 1000);
 
     } catch (error) {
-      console.error('Masking process failed:', error);
+      console.error('Individual masking process failed:', error);
+      setCurrentStep('Masking failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      setIsProcessing(false);
       setIsMasking(false);
       setIsAnimating(false);
     }
@@ -170,9 +254,12 @@ export function ThreeDCollage({ images, onScanComplete }: ThreeDCollageProps) {
     // For now, use the same generated image for all 3 views
     // In the future, you can implement actual splitting of the collage
     setGeneratedImages([resultUrl, resultUrl, resultUrl]);
+    setGeneratedImageUrl(resultUrl);
     setShowOutput(true);
     setShowTemplates(false);
     setShowGenerationModal(false);
+    setCurrentStep('Generation completed!');
+    setIsProcessing(false);
   };
 
   const rotate = (dir: number) => {
@@ -313,6 +400,17 @@ export function ThreeDCollage({ images, onScanComplete }: ThreeDCollageProps) {
           
   return (
     <div className="relative">
+      {/* Debug Image Viewer */}
+      <DebugImageViewer
+        originalImages={images}
+        maskedImages={maskedImages}
+        originalCollageUrl={originalCollageUrl}
+        maskedCollageUrl={maskedCollageUrl}
+        generatedImageUrl={generatedImageUrl}
+        isProcessing={isProcessing}
+        currentStep={currentStep}
+      />
+      
       {/* Fixed 3D Carousel Container */}
       <div className="carousel-3d-fixed">
         <div className="carousel-3d-stage-fixed" style={{ '--active': active } as React.CSSProperties}>
