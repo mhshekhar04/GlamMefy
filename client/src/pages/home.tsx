@@ -284,48 +284,49 @@ export default function Home() {
             
             {/* Action Buttons */}
             <div className="flex items-center space-x-3">
-              {!isMobile && (
-                isAuthenticated ? (
-                  <div className="flex items-center space-x-3">
-                    <div className="flex items-center space-x-2">
-                      {user?.avatar ? (
+              {isAuthenticated ? (
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-2">
+                    {user?.avatar ? (
+                      <div className="relative">
                         <img 
                           src={user.avatar} 
-                          alt={user.name}
-                          className="w-8 h-8 rounded-full"
+                          alt={user.name} 
+                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-primary/20"
                         />
-                      ) : (
-                        <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                          <User className="h-4 w-4 text-white" />
-                        </div>
-                      )}
-                      <span className="text-sm font-medium text-slate-700">{user?.name}</span>
-                    </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={logout}
-                      className="border-red-300 text-red-600 hover:bg-red-50"
-                    >
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Logout
-                    </Button>
+                        <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                      </div>
+                    ) : (
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full border-2 border-primary/20 flex items-center justify-center">
+                        <User className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                      </div>
+                    )}
+                    <span className="text-sm font-medium text-slate-700 hidden sm:block">{user?.name}</span>
                   </div>
-                ) : (
                   <Button 
                     variant="outline" 
-                    className="relative px-6 py-2.5 border-2 border-primary/30 text-primary font-semibold rounded-xl hover:border-primary hover:bg-primary/5 transition-all duration-300 group overflow-hidden"
-                    onClick={() => setAuthModalOpen(true)}
+                    size="sm"
+                    onClick={logout}
+                    className="border-red-300 text-red-600 hover:bg-red-50 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm"
                   >
-                    <span className="relative z-10">Login</span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-secondary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <LogOut className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                    <span className="hidden sm:inline">Logout</span>
                   </Button>
-                )
+                </div>
+              ) : (
+                <Button 
+                  variant="outline" 
+                  className="relative px-3 sm:px-6 py-2 sm:py-2.5 border-2 border-primary/30 text-primary font-semibold rounded-xl hover:border-primary hover:bg-primary/5 transition-all duration-300 group overflow-hidden text-xs sm:text-sm"
+                  onClick={() => setAuthModalOpen(true)}
+                >
+                  <span className="relative z-10">Login</span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-secondary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                </Button>
               )}
               
               {!isAuthenticated && (
                 <Button 
-                  className="relative px-6 py-2.5 bg-gradient-to-r from-primary via-secondary to-accent text-white font-bold rounded-xl hover:shadow-2xl hover:shadow-primary/25 hover:scale-105 transition-all duration-300 group overflow-hidden"
+                  className="relative px-3 sm:px-6 py-2 sm:py-2.5 bg-gradient-to-r from-primary via-secondary to-accent text-white font-bold rounded-xl hover:shadow-2xl hover:shadow-primary/25 hover:scale-105 transition-all duration-300 group overflow-hidden text-xs sm:text-sm"
                   onClick={() => setAuthModalOpen(true)}
                 >
                   <span className="relative z-10">Sign Up Free</span>
@@ -433,13 +434,13 @@ export default function Home() {
                   <>
                     <Button 
                       variant="outline" 
-                      className="w-full py-3 border-2 border-primary/30 text-primary font-semibold rounded-xl hover:border-primary hover:bg-primary/5 transition-all duration-300"
+                      className="w-full py-2.5 sm:py-3 border-2 border-primary/30 text-primary font-semibold rounded-xl hover:border-primary hover:bg-primary/5 transition-all duration-300 text-sm sm:text-base"
                       onClick={() => setAuthModalOpen(true)}
                     >
                       Login
                     </Button>
                     <Button 
-                      className="w-full py-3 bg-gradient-to-r from-primary to-secondary text-white font-bold rounded-xl hover:shadow-xl hover:scale-105 transition-all duration-300"
+                      className="w-full py-2.5 sm:py-3 bg-gradient-to-r from-primary to-secondary text-white font-bold rounded-xl hover:shadow-xl hover:scale-105 transition-all duration-300 text-sm sm:text-base"
                       onClick={() => setAuthModalOpen(true)}
                     >
                       Sign Up Free

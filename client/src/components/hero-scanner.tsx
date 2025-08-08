@@ -684,57 +684,67 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
                     playsInline
                     muted
                   className="absolute inset-0 w-full h-full object-cover rounded-full"
-                  style={{ transform: 'scale(1.05)' }}
+                  style={{ transform: 'scale(1.05) scaleX(-1)' }}
                 />
                 
-                {/* Scanning Overlay */}
+                {/* Professional Scanning Overlay */}
                 <div className="absolute inset-0 rounded-full">
-                  {/* Animated Border */}
-                  <div 
-                    className="absolute inset-0 rounded-full border-4 border-green-500 animate-pulse"
-                    style={{
-                      boxShadow: `0 0 30px rgba(34, 197, 94, ${0.6 + Math.sin(scanIntensity * 0.1) * 0.4})`
-                    }}
-                  ></div>
+                  {/* Professional Border */}
+                  <div className="absolute inset-0 rounded-full border-2 border-white/30 shadow-inner"></div>
                   
-                  {/* Scanning Ring */}
-                  <div 
-                    className="absolute inset-2 rounded-full border-2 border-green-400/50"
-                    style={{
-                      background: `conic-gradient(from ${scanIntensity * 3.6}deg, transparent 0deg, rgba(34, 197, 94, 0.8) 15deg, transparent 30deg)`
-                    }}
-                  ></div>
-                  
-                  {/* Face Detection Frame */}
-                  <div className="absolute inset-8 border-2 border-green-400 rounded-full animate-pulse">
-                    <div className="absolute -top-2 sm:-top-3 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium shadow-lg">
+                  {/* Face Targeting Frame */}
+                  <div className="absolute inset-12 border border-white/50 rounded-full">
+                    {/* Corner Indicators */}
+                    <div className="absolute -top-1 -left-1 w-3 h-3 border-l-2 border-t-2 border-white/70 rounded-tl-lg"></div>
+                    <div className="absolute -top-1 -right-1 w-3 h-3 border-r-2 border-t-2 border-white/70 rounded-tr-lg"></div>
+                    <div className="absolute -bottom-1 -left-1 w-3 h-3 border-l-2 border-b-2 border-white/70 rounded-bl-lg"></div>
+                    <div className="absolute -bottom-1 -right-1 w-3 h-3 border-r-2 border-b-2 border-white/70 rounded-br-lg"></div>
+                    
+                    {/* Center Crosshair */}
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                      <div className="w-1 h-8 bg-white/60 rounded-full"></div>
+                      <div className="w-8 h-1 bg-white/60 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
+                    </div>
+                    
+                    {/* Face Detection Status */}
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-green-500/90 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-medium shadow-lg border border-white/20">
                       ✓ Face Detected
                     </div>
                   </div>
                   
                   {/* Progress Indicators */}
-                  <div className="absolute top-3 sm:top-6 left-1/2 transform -translate-x-1/2 flex space-x-2 sm:space-x-4">
+                  <div className="absolute top-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
                     {[1, 2, 3].map((dot) => (
                       <div
                         key={dot}
-                        className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full transition-all duration-500 shadow-lg ${
+                        className={`w-2 h-2 rounded-full transition-all duration-500 ${
                           (scanPhase === 'front' && dot === 1) ||
                           (scanPhase === 'left' && dot === 2) ||
                           (scanPhase === 'right' && dot === 3)
-                            ? 'bg-green-500 shadow-green-500/50 scale-125'
-                            : 'bg-gray-400'
+                            ? 'bg-white shadow-lg scale-125'
+                            : 'bg-white/30'
                         }`}
                       />
                     ))}
                   </div>
 
                   {/* AI Status Badge */}
-                  <div className="absolute bottom-3 left-3 sm:bottom-6 sm:left-6">
-                    <div className="flex items-center space-x-1 sm:space-x-2 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 sm:px-4 sm:py-2 shadow-lg border border-green-200">
-                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full animate-pulse"></div>
-                      <Brain className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
-                      <span className="text-xs sm:text-sm font-semibold text-gray-700">Analyzing</span>
+                  <div className="absolute bottom-4 left-4">
+                    <div className="flex items-center space-x-2 bg-black/20 backdrop-blur-sm rounded-full px-3 py-2 shadow-lg border border-white/20">
+                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                      <Brain className="h-4 w-4 text-white" />
+                      <span className="text-xs font-medium text-white">Analyzing</span>
                     </div>
+                  </div>
+                  
+                  {/* Scanning Progress Ring */}
+                  <div className="absolute inset-4 rounded-full">
+                    <div 
+                      className="absolute inset-0 rounded-full border border-white/20"
+                      style={{
+                        background: `conic-gradient(from ${scanIntensity * 3.6}deg, transparent 0deg, rgba(255, 255, 255, 0.3) 15deg, transparent 30deg)`
+                      }}
+                    ></div>
                   </div>
                 </div>
               </div>
