@@ -18,6 +18,8 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
   const [capturedImages, setCapturedImages] = useState<string[]>([]);
   const [showCollage, setShowCollage] = useState(false);
   const [scanIntensity, setScanIntensity] = useState(0);
+  const [countdown, setCountdown] = useState(5);
+  const [isCountingDown, setIsCountingDown] = useState(false);
   
   // Masking process state
   const [isMasking, setIsMasking] = useState(false);
@@ -28,6 +30,97 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+
+  // Voice synthesis setup
+  const speak = (text: string) => {
+    try {
+      if ('speechSynthesis' in window) {
+        // Cancel any ongoing speech
+        speechSynthesis.cancel();
+        
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 0.8;
+        utterance.pitch = 1;
+        utterance.volume = 0.8;
+        
+        // Try to get a female voice for better quality
+        const voices = speechSynthesis.getVoices();
+        const femaleVoice = voices.find(voice => 
+          voice.name.includes('female') || 
+          voice.name.includes('Female') ||
+          voice.name.includes('Samantha') ||
+          voice.name.includes('Google UK English Female')
+        );
+        if (femaleVoice) {
+          utterance.voice = femaleVoice;
+        }
+        
+        utterance.onstart = () => {
+          console.log('Voice started:', text);
+        };
+        
+        utterance.onend = () => {
+          console.log('Voice ended:', text);
+        };
+        
+        utterance.onerror = (event) => {
+          console.error('Voice error:', event.error);
+          // Fallback to custom audio if available
+          playCustomAudio(text);
+        };
+        
+        speechSynthesis.speak(utterance);
+      } else {
+        console.log('Speech synthesis not supported, would say:', text);
+        // Fallback to custom audio
+        playCustomAudio(text);
+      }
+    } catch (error) {
+      console.error('Voice synthesis error:', error);
+      // Fallback to custom audio
+      playCustomAudio(text);
+    }
+  };
+
+  // Fallback audio system for custom MP3 files
+  const playCustomAudio = (text: string) => {
+    // Map text to audio file names - using your exact file names
+    const audioMap: { [key: string]: string } = {
+      'Starting scan. Look straight ahead.': '/audio/starting.mp3',
+      'Front view captured. Now turn your head to the left.': '/audio/turnleft.mp3',
+      'Left view captured. Now turn your head to the right.': '/audio/turnright.mp3',
+      'Right view captured. Scanning complete!': '/audio/complete.mp3'
+    };
+
+    const audioFile = audioMap[text];
+    if (audioFile) {
+      try {
+        const audio = new Audio(audioFile);
+        audio.volume = 0.8;
+        audio.play().catch(error => {
+          console.error('Custom audio play error:', error);
+        });
+      } catch (error) {
+        console.error('Custom audio error:', error);
+      }
+    } else {
+      console.log('No custom audio for:', text);
+    }
+  };
+
+  // Initialize voices when component mounts
+  useEffect(() => {
+    if ('speechSynthesis' in window) {
+      // Load voices
+      speechSynthesis.getVoices();
+      
+      // Some browsers need a delay to load voices
+      setTimeout(() => {
+        const voices = speechSynthesis.getVoices();
+        console.log('Available voices:', voices.length);
+      }, 1000);
+    }
+  }, []);
 
   // Scanning animation
   useEffect(() => {
@@ -73,8 +166,25 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
   }, [scanState, capturedImages.length, maskedImages.length]);
 
   const startCamera = () => {
-    setScanPhase('front');
-    setScanState('scanning');
+    setIsCountingDown(true);
+    setCountdown(5);
+    // Remove voice countdown - just use visual countdown
+    
+    const countdownInterval = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev > 1) {
+          // No voice for countdown numbers
+          return prev - 1;
+        } else {
+          clearInterval(countdownInterval);
+          setIsCountingDown(false);
+          setScanPhase('front');
+          setScanState('scanning');
+          speak("Starting scan. Look straight ahead.");
+          return 0;
+        }
+      });
+    }, 1000);
   };
 
   const captureImage = (phase: ScanPhase) => {
@@ -93,15 +203,16 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
 
     if (phase === 'front') {
       setScanPhase('left');
+      speak("Front view captured. Now turn your head to the left.");
       setTimeout(() => captureImage('left'), 5000);
     } else if (phase === 'left') {
       setScanPhase('right');
+      speak("Left view captured. Now turn your head to the right.");
       setTimeout(() => captureImage('right'), 5000);
     } else {
-      setTimeout(() => {
-        setScanState('processing');
-        processImages();
-      }, 500);
+      speak("Right view captured. Scanning complete!");
+      setScanState('complete');
+      setTimeout(() => processImages(), 1000);
     }
   };
 
@@ -387,8 +498,25 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
       case 'waiting':
         return (
           <div className="text-center space-y-8">
+            {/* Countdown Overlay */}
+            {isCountingDown && (
+              <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+                <div className="bg-white rounded-3xl p-8 max-w-md mx-4 shadow-2xl text-center">
+                  <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <span className="text-4xl font-bold text-white">{countdown}</span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-800 mb-2">Get Ready!</h3>
+                  <p className="text-gray-600 mb-4">Position yourself in front of the camera</p>
+                  <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                    <span>Voice instructions will guide you</span>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             {/* Modern Scanner Container */}
-            <div className="relative mx-auto w-96 h-96">
+            <div className="relative mx-auto w-80 h-80 sm:w-96 sm:h-96">
               {/* Outer Glow Ring */}
               <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500/10 via-blue-500/10 to-pink-500/10 animate-pulse"></div>
               
@@ -405,38 +533,38 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
                   {/* Scanner Icon */}
                   <div className="relative flex items-center justify-center h-full">
                     <div className="relative group-hover:scale-110 transition-transform duration-300">
-                      <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl">
-                        <Camera className="h-12 w-12 text-white group-hover:animate-pulse" />
+                      <div className="w-16 h-16 sm:w-24 sm:h-24 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl">
+                        <Camera className="h-8 w-8 sm:h-12 sm:w-12 text-white group-hover:animate-pulse" />
                       </div>
-                      <div className="absolute -top-2 -right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center animate-ping shadow-lg">
-                        <div className="w-4 h-4 bg-white rounded-full"></div>
+                      <div className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 w-6 h-6 sm:w-8 sm:h-8 bg-green-500 rounded-full flex items-center justify-center animate-ping shadow-lg">
+                        <div className="w-3 h-3 sm:w-4 sm:h-4 bg-white rounded-full"></div>
                       </div>
                     </div>
                   </div>
 
                   {/* Status Badge */}
-                  <div className="absolute top-6 left-6">
-                    <div className="flex items-center space-x-2 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg border border-purple-200">
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                      <Brain className="h-4 w-4 text-purple-600" />
-                      <span className="text-sm font-semibold text-gray-700">AI Ready</span>
+                  <div className="absolute top-3 left-3 sm:top-6 sm:left-6">
+                    <div className="flex items-center space-x-1 sm:space-x-2 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 sm:px-4 sm:py-2 shadow-lg border border-purple-200">
+                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      <Brain className="h-3 w-3 sm:h-4 sm:w-4 text-purple-600" />
+                      <span className="text-xs sm:text-sm font-semibold text-gray-700">AI Ready</span>
                     </div>
                   </div>
 
                   {/* Feature Indicators */}
-                  <div className="absolute bottom-6 left-6 right-6">
+                  <div className="absolute bottom-3 left-3 right-3 sm:bottom-6 sm:left-6 sm:right-6">
                     <div className="flex justify-between">
-                      <div className="flex items-center space-x-2 bg-white/80 backdrop-blur-sm rounded-full px-3 py-1 shadow-md">
-                        <Eye className="h-4 w-4 text-blue-600" />
-                        <span className="text-xs font-medium text-gray-700">Detection</span>
+                      <div className="flex items-center space-x-1 sm:space-x-2 bg-white/80 backdrop-blur-sm rounded-full px-2 py-1 sm:px-3 sm:py-1 shadow-md">
+                        <Eye className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
+                        <span className="text-xs font-medium text-gray-700 hidden sm:inline">Detection</span>
                       </div>
-                      <div className="flex items-center space-x-2 bg-white/80 backdrop-blur-sm rounded-full px-3 py-1 shadow-md">
-                        <Scan className="h-4 w-4 text-purple-600" />
-                        <span className="text-xs font-medium text-gray-700">3D Map</span>
+                      <div className="flex items-center space-x-1 sm:space-x-2 bg-white/80 backdrop-blur-sm rounded-full px-2 py-1 sm:px-3 sm:py-1 shadow-md">
+                        <Scan className="h-3 w-3 sm:h-4 sm:w-4 text-purple-600" />
+                        <span className="text-xs font-medium text-gray-700 hidden sm:inline">3D Map</span>
                       </div>
-                      <div className="flex items-center space-x-2 bg-white/80 backdrop-blur-sm rounded-full px-3 py-1 shadow-md">
-                        <Activity className="h-4 w-4 text-green-600" />
-                        <span className="text-xs font-medium text-gray-700">Analysis</span>
+                      <div className="flex items-center space-x-1 sm:space-x-2 bg-white/80 backdrop-blur-sm rounded-full px-2 py-1 sm:px-3 sm:py-1 shadow-md">
+                        <Activity className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
+                        <span className="text-xs font-medium text-gray-700 hidden sm:inline">Analysis</span>
                       </div>
                     </div>
                   </div>
@@ -445,36 +573,36 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
             </div>
             
             {/* Content Section */}
-            <div className="space-y-6">
-              <div className="space-y-3">
-                <h3 className="text-4xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600 bg-clip-text text-transparent">
+            <div className="space-y-4 sm:space-y-6">
+              <div className="space-y-2 sm:space-y-3">
+                <h3 className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600 bg-clip-text text-transparent">
                   GlamMefy Scanner
                 </h3>
-                <p className="text-gray-600 text-lg">Advanced 3D Face Recognition & Analysis</p>
-                <p className="text-sm text-gray-500 italic">Click the scanner to begin</p>
+                <p className="text-gray-600 text-sm sm:text-lg">Advanced 3D Face Recognition & Analysis</p>
+                <p className="text-xs sm:text-sm text-gray-500 italic">Click the scanner to begin</p>
               </div>
 
               {/* Feature Grid */}
-              <div className="grid grid-cols-3 gap-4 max-w-md mx-auto">
-                <div className="text-center p-4 bg-white rounded-xl shadow-md border border-gray-100">
-                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                    <Eye className="h-6 w-6 text-purple-600" />
+              <div className="grid grid-cols-3 gap-2 sm:gap-4 max-w-md mx-auto">
+                <div className="text-center p-2 sm:p-4 bg-white rounded-xl shadow-md border border-gray-100">
+                  <div className="w-8 h-8 sm:w-12 sm:h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-1 sm:mb-2">
+                    <Eye className="h-4 w-4 sm:h-6 sm:w-6 text-purple-600" />
                   </div>
-                  <p className="text-sm font-semibold text-gray-700">Face Detection</p>
+                  <p className="text-xs sm:text-sm font-semibold text-gray-700">Face Detection</p>
                   <p className="text-xs text-gray-500">99.9% Accuracy</p>
                 </div>
-                <div className="text-center p-4 bg-white rounded-xl shadow-md border border-gray-100">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                    <Scan className="h-6 w-6 text-blue-600" />
+                <div className="text-center p-2 sm:p-4 bg-white rounded-xl shadow-md border border-gray-100">
+                  <div className="w-8 h-8 sm:w-12 sm:h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-1 sm:mb-2">
+                    <Scan className="h-4 w-4 sm:h-6 sm:w-6 text-blue-600" />
                   </div>
-                  <p className="text-sm font-semibold text-gray-700">3D Mapping</p>
+                  <p className="text-xs sm:text-sm font-semibold text-gray-700">3D Mapping</p>
                   <p className="text-xs text-gray-500">High Precision</p>
                 </div>
-                <div className="text-center p-4 bg-white rounded-xl shadow-md border border-gray-100">
-                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                    <Activity className="h-6 w-6 text-green-600" />
+                <div className="text-center p-2 sm:p-4 bg-white rounded-xl shadow-md border border-gray-100">
+                  <div className="w-8 h-8 sm:w-12 sm:h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-1 sm:mb-2">
+                    <Activity className="h-4 w-4 sm:h-6 sm:w-6 text-green-600" />
                   </div>
-                  <p className="text-sm font-semibold text-gray-700">AI Analysis</p>
+                  <p className="text-xs sm:text-sm font-semibold text-gray-700">AI Analysis</p>
                   <p className="text-xs text-gray-500">Real-time</p>
                 </div>
               </div>
@@ -482,14 +610,14 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
               {/* Start Button */}
               <Button
                 onClick={startCamera}
-                className="relative w-full py-5 bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500 hover:from-purple-600 hover:via-blue-600 hover:to-pink-600 hover:shadow-2xl hover:scale-105 transition-all duration-500 rounded-2xl font-bold text-lg overflow-hidden group"
+                className="relative w-full py-3 sm:py-5 bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500 hover:from-purple-600 hover:via-blue-600 hover:to-pink-600 hover:shadow-2xl hover:scale-105 transition-all duration-500 rounded-2xl font-bold text-sm sm:text-lg overflow-hidden group"
                 size="lg"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <div className="relative z-10 flex items-center justify-center space-x-3">
-                  <Sparkles className="h-6 w-6 animate-pulse" />
+                <div className="relative z-10 flex items-center justify-center space-x-2 sm:space-x-3">
+                  <Sparkles className="h-4 w-4 sm:h-6 sm:w-6 animate-pulse" />
                   <span>Initialize GlamMefy Scanner</span>
-                  <Zap className="h-6 w-6 animate-pulse" />
+                  <Zap className="h-4 w-4 sm:h-6 sm:w-6 animate-pulse" />
                 </div>
               </Button>
             </div>
@@ -500,7 +628,7 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
         return (
           <div className="text-center space-y-8">
             {/* Modern Scanning Container */}
-            <div className="relative mx-auto w-96 h-96">
+            <div className="relative mx-auto w-80 h-80 sm:w-96 sm:h-96">
               <div className="hero-scanner-frame relative overflow-hidden rounded-full shadow-2xl">
                 {/* Video Feed */}
                   <video
@@ -532,17 +660,17 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
                   
                   {/* Face Detection Frame */}
                   <div className="absolute inset-8 border-2 border-green-400 rounded-full animate-pulse">
-                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium shadow-lg">
+                    <div className="absolute -top-2 sm:-top-3 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium shadow-lg">
                       ✓ Face Detected
                     </div>
                   </div>
                   
                   {/* Progress Indicators */}
-                  <div className="absolute top-6 left-1/2 transform -translate-x-1/2 flex space-x-4">
+                  <div className="absolute top-3 sm:top-6 left-1/2 transform -translate-x-1/2 flex space-x-2 sm:space-x-4">
                     {[1, 2, 3].map((dot) => (
                       <div
                         key={dot}
-                        className={`w-4 h-4 rounded-full transition-all duration-500 shadow-lg ${
+                        className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full transition-all duration-500 shadow-lg ${
                           (scanPhase === 'front' && dot === 1) ||
                           (scanPhase === 'left' && dot === 2) ||
                           (scanPhase === 'right' && dot === 3)
@@ -554,11 +682,11 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
                   </div>
 
                   {/* AI Status Badge */}
-                  <div className="absolute bottom-6 left-6">
-                    <div className="flex items-center space-x-2 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg border border-green-200">
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                      <Brain className="h-4 w-4 text-green-600" />
-                      <span className="text-sm font-semibold text-gray-700">Analyzing</span>
+                  <div className="absolute bottom-3 left-3 sm:bottom-6 sm:left-6">
+                    <div className="flex items-center space-x-1 sm:space-x-2 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 sm:px-4 sm:py-2 shadow-lg border border-green-200">
+                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      <Brain className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
+                      <span className="text-xs sm:text-sm font-semibold text-gray-700">Analyzing</span>
                     </div>
                   </div>
                 </div>
@@ -566,42 +694,52 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
             </div>
 
             {/* Status Section */}
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Current Phase */}
-              <div className="flex items-center justify-center space-x-3">
-                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center animate-pulse">
-                  <Brain className="h-4 w-4 text-white" />
+              <div className="flex items-center justify-center space-x-2 sm:space-x-3">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-500 rounded-full flex items-center justify-center animate-pulse">
+                  <Brain className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-800">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-800">
                     Capturing {scanPhase.charAt(0).toUpperCase() + scanPhase.slice(1)} View
                   </h3>
-                  <p className="text-gray-600">GlamMefy AI is analyzing facial features...</p>
+                  <p className="text-gray-600 text-sm sm:text-base">GlamMefy AI is analyzing facial features...</p>
                 </div>
               </div>
               
               {/* Phase Progress */}
-              <div className="flex justify-center space-x-3">
+              <div className="flex justify-center space-x-2 sm:space-x-3">
                 {(['front', 'left', 'right'] as ScanPhase[]).map((phase) => (
                   <div
                     key={phase}
-                    className={`px-6 py-3 rounded-full text-sm font-medium transition-all duration-500 shadow-lg ${
+                    className={`px-3 py-2 sm:px-6 sm:py-3 rounded-full text-xs sm:text-sm font-medium transition-all duration-500 shadow-lg ${
                       scanPhase === phase 
                         ? 'bg-gradient-to-r from-green-500 to-blue-500 text-white shadow-green-500/50' 
                         : 'bg-white text-gray-600 border border-gray-200'
                     }`}
                   >
-                    {phase.charAt(0).toUpperCase() + phase.slice(1)}
+                    {phase === 'front' ? 'Front' : phase === 'left' ? 'Left' : 'Right'}
                     {scanPhase === phase && (
-                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-ping"></div>
+                      <div className="absolute -top-1 -right-1 w-2 h-2 sm:w-3 sm:h-3 bg-green-400 rounded-full animate-ping"></div>
                     )}
                   </div>
                 ))}
               </div>
 
+              {/* Voice Status */}
+              <div className="flex items-center justify-center space-x-2 mt-4">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-xs sm:text-sm text-gray-600">
+                  {scanPhase === 'front' ? 'Looking straight ahead' : 
+                   scanPhase === 'left' ? 'Turn head to the left' : 
+                   'Turn head to the right'}
+                </span>
+              </div>
+
               {/* Progress Bar */}
               <div className="w-full max-w-md mx-auto">
-                <div className="flex justify-between text-sm text-gray-600 mb-2">
+                <div className="flex justify-between text-xs sm:text-sm text-gray-600 mb-2">
                   <span>Scan Progress</span>
                   <span>{scanPhase === 'front' ? '33%' : scanPhase === 'left' ? '66%' : '100%'}</span>
                 </div>
