@@ -10,7 +10,7 @@ const HAIR_TEMPLATES = [
     loraPath: 'https://v3.fal.media/files/penguin/oE9LhKKMITakN2OPOPu8A_pytorch_lora_weights.safetensors',
     color: '#8B4513',
     icon: '🔄',
-    image: '/src/components/blackCurl.png',
+    image: '/images/blackCurl.png',
     prompt: 'make the hairstyle of uploaded image exactly like BlackCurly with black color hair'
   },
   {
@@ -20,7 +20,7 @@ const HAIR_TEMPLATES = [
     loraPath: 'https://v3.fal.media/files/kangaroo/sQ_L7ymUU6OeIgyQFXqCV_pytorch_lora_weights.safetensors',
     color: '#A0522D',
     icon: '💇‍♀️',
-    image: '/src/components/LongMaroon.png',
+    image: '/images/LongMaroon.png',
     prompt: 'make the hairstyle of uploaded image exactly like brownHair with maroon brown color hair'
   },
   {
@@ -30,7 +30,7 @@ const HAIR_TEMPLATES = [
     loraPath: 'https://v3.fal.media/files/panda/2Mq3BEPVV43vBwUGrtLv-_pytorch_lora_weights.safetensors',
     color: '#F5DEB3',
     icon: '✨',
-    image: '/src/components/CreamStreak.png',
+    image: '/images/CreamStreak.png',
     prompt: 'make the hairstyle of uploaded image exactly like creamStreakHair with black color hair and cream blonde streaks'
   }
 ];
