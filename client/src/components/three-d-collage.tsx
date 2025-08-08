@@ -1,11 +1,11 @@
 // ThreeDCollage.tsx
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Sparkles, ChevronLeft, ChevronRight, Download, RotateCcw, Brain, Camera } from 'lucide-react';
+import { Sparkles, RotateCw, ChevronLeft, ChevronRight, Star, Camera, CheckCircle, Brain } from 'lucide-react';
 import { maskingAPI } from '../services/masking-api';
 import { hairGenerationAPI } from '../services/hair-generation-api';
 import { HairTemplates } from './hair-templates';
 import { HairGenerationModal } from './hair-generation-modal';
+import { DebugImageViewer } from './debug-image-viewer';
 
 interface ThreeDCollageProps {
   images: string[];
@@ -401,6 +401,15 @@ export function ThreeDCollage({ images, onScanComplete }: ThreeDCollageProps) {
   return (
     <div className="relative">
       {/* Debug Image Viewer */}
+      <DebugImageViewer
+        originalImages={images}
+        maskedImages={maskedImages}
+        originalCollageUrl={originalCollageUrl}
+        maskedCollageUrl={maskedCollageUrl}
+        generatedImageUrl={generatedImageUrl}
+        isProcessing={isProcessing}
+        currentStep={currentStep}
+      />
       
       {/* Fixed 3D Carousel Container */}
       <div className="carousel-3d-fixed">
@@ -487,9 +496,10 @@ export function ThreeDCollage({ images, onScanComplete }: ThreeDCollageProps) {
       <HairGenerationModal
         isOpen={showGenerationModal}
         onClose={() => setShowGenerationModal(false)}
-        originalImageUrl={originalCollageUrl || ''}
-        maskedImageUrl={maskedCollageUrl || ''}
-        template={selectedTemplate}
+        onGenerationComplete={handleGenerationComplete}
+        originalImageUrl={maskedImageUrl || ''}
+        maskImageUrl={maskedImageUrl || ''}
+        selectedTemplate={selectedTemplate}
       />
     </div>
   );

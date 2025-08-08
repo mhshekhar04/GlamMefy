@@ -320,6 +320,21 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
       const originalCollagePreviewUrl = URL.createObjectURL(originalCollageBlob);
       setOriginalCollageUrl(originalCollagePreviewUrl);
       
+      console.log('=== URL Setting Debug ===');
+      console.log('Set masked collage URL to:', maskedCollagePreviewUrl);
+      console.log('Set original collage URL to:', originalCollagePreviewUrl);
+      console.log('URLs are valid:', !!maskedCollagePreviewUrl, !!originalCollagePreviewUrl);
+      console.log('Blob sizes - masked:', collageBlob.size, 'original:', originalCollageBlob.size);
+      
+      // Validate URLs by testing them
+      try {
+        const maskedTest = await fetch(maskedCollagePreviewUrl);
+        const originalTest = await fetch(originalCollagePreviewUrl);
+        console.log('URL validation - masked:', maskedTest.ok, 'original:', originalTest.ok);
+      } catch (error) {
+        console.error('URL validation failed:', error);
+      }
+      
       setMaskingStep('Masking completed successfully!');
       setIsMasking(false);
       
@@ -327,6 +342,12 @@ export function HeroScanner({ onScanComplete }: HeroScannerProps) {
       await new Promise(resolve => setTimeout(resolve, 500));
       
       // Automatically call onScanComplete with the processed data
+      console.log('=== Automatically calling onScanComplete ===');
+      console.log('originalCollageUrl:', originalCollagePreviewUrl);
+      console.log('maskedCollageUrl:', maskedCollagePreviewUrl);
+      console.log('capturedImages length:', capturedImages.length);
+      console.log('maskedImages length:', maskedImagesArray.length);
+      
       onScanComplete({
         images: capturedImages,
         originalCollageUrl: originalCollagePreviewUrl,
